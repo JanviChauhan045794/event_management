@@ -1,4 +1,9 @@
 #!/bin/bash
-pip install -r requirements.txt
-python3.11 manage.py migrate
-python3.11 manage.py collectstatic --noinput
+echo "Building project packages..."
+python3 -m pip install -r requirements.txt
+
+echo "Migrate database..."
+python3 manage.py makemigrations --noinput
+python3 manage.py migrate --noinput
+echo "Collecting static files..."
+python3 manage.py collectstatic --noinput
