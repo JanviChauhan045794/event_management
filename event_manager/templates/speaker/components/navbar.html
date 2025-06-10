@@ -1,0 +1,82 @@
+<nav class="navbar">
+    <div class="navbar-left">
+        <button id="sidebarToggle" class="btn-icon d-lg-none">
+            <div class="icon-wrapper">
+                <i class="fas fa-bars"></i>
+            </div>
+        </button>
+        <div class="navbar-page-title">{% block page_title %}Speaker Dashboard{% endblock %}</div>
+    </div>
+    <div class="navbar-right">
+        <div class="navbar-search">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" placeholder="Search...">
+            </div>
+        </div>
+        <div class="navbar-actions">
+            <div class="dropdown">
+                <button class="btn-icon" type="button" id="notificationsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-bell"></i>
+                        {% if unread_notifications_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_notifications_count }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end notifications-dropdown" aria-labelledby="notificationsDropdown">
+                    <li><h6 class="dropdown-header">Notifications</h6></li>
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                            <li>
+                                <a class="dropdown-item notification-item {% if not notification.is_read %}unread{% endif %}" href="{{ notification.action_url }}">
+                                    <div class="notification-icon bg-{{ notification.color }} text-white">
+                                        <i class="fas {{ notification.icon }}"></i>
+                                    </div>
+                                    <div class="notification-content">
+                                        <div class="small text-gray-500">{{ notification.created_at|date:"M d, Y" }}</div>
+                                        <div class="{% if not notification.is_read %}fw-bold{% endif %}">{{ notification.message }}</div>
+                                    </div>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li><div class="dropdown-item text-center">No notifications found</div></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-center view-all" href="{% url 'get_notifications' %}">View All Notifications</a></li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <button class="btn-icon" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="icon-wrapper">
+                        <i class="fas fa-user-circle avatar"></i>
+                    </div>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li>
+                        <div class="dropdown-item">
+                            <div class="dropdown-user-details">
+                                <div class="me-2">
+                                    <i class="fas fa-user-circle fa-2x text-gray-300"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ request.user.get_full_name }}</div>
+                                    <div class="small text-gray-500">{{ request.user.email }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog fa-sm fa-fw me-2 text-gray-400"></i> Profile</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-cogs fa-sm fa-fw me-2 text-gray-400"></i> Settings</a></li>
+                    <li><a class="dropdown-item" href="{% url 'get_notifications' %}"><i class="fas fa-bell fa-sm fa-fw me-2 text-gray-400"></i> Notifications</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt fa-sm fa-fw me-2 text-gray-400"></i> Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

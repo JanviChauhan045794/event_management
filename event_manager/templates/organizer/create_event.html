@@ -1,0 +1,325 @@
+{% extends "organizer/base.html" %}
+
+{% block title %}Create Event - Event Manager{% endblock %}
+
+{% block page_title %}Create New Event{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-calendar-plus me-2 text-primary"></i>Create New Event
+                    </h5>
+                    <a href="{% url 'organizer_dashboard' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="row mb-4">
+                        <div class="col-lg-8 col-md-7">
+                            <div class="p-3 bg-light rounded-3 mb-3">
+                                <h6 class="fw-bold text-primary"><i class="fas fa-lightbulb me-2"></i>Tips for a Successful Event</h6>
+                                <p class="mb-1 small">• Choose a clear, descriptive title that conveys the purpose of your event</p>
+                                <p class="mb-1 small">• Provide detailed information about what attendees can expect</p>
+                                <p class="mb-0 small">• Set a realistic date and time to maximize attendance</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-5">
+                            <div class="text-center p-3 bg-primary bg-opacity-10 rounded-3">
+                                <i class="fas fa-calendar-check fa-3x text-primary mb-2"></i>
+                                <h6 class="fw-bold">Ready to create your event?</h6>
+                                <p class="small mb-0">Fill out the form below with your event details</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-lg-8 pe-lg-4">
+                                <!-- Basic Information Section -->
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h6 class="card-title mb-0 fw-bold">
+                                            <span class="badge bg-primary rounded-circle me-2">1</span>
+                                            <i class="fas fa-info-circle me-2 text-primary"></i>Basic Information
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="form-group mb-4">
+                                            <label for="id_title" class="form-label fw-semibold">Event Title <span class="text-danger">*</span></label>
+                                            {{ form.title }}
+                                            {% if form.title.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Choose a clear, descriptive title for your event.</div>
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <label for="id_description" class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
+                                            {{ form.description }}
+                                            {% if form.description.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">{{ form.description.help_text }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Date & Location Section -->
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h6 class="card-title mb-0 fw-bold">
+                                            <span class="badge bg-primary rounded-circle me-2">2</span>
+                                            <i class="fas fa-calendar me-2 text-primary"></i>Date & Location
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="id_start_date" class="form-label fw-semibold">Start Date & Time <span class="text-danger">*</span></label>
+                                                    {{ form.start_date }}
+                                                    {% if form.start_date.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.start_date.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">{{ form.start_date.help_text }}</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="id_end_date" class="form-label fw-semibold">End Date & Time <span class="text-danger">*</span></label>
+                                                    {{ form.end_date }}
+                                                    {% if form.end_date.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.end_date.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">{{ form.end_date.help_text }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <label for="id_location" class="form-label fw-semibold">Location <span class="text-danger">*</span></label>
+                                            {{ form.location }}
+                                            {% if form.location.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Enter the full venue address or "Online" for virtual events.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-lg-4">
+                                <!-- Event Banner Section -->
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h6 class="card-title mb-0 fw-bold">
+                                            <span class="badge bg-primary rounded-circle me-2">3</span>
+                                            <i class="fas fa-image me-2 text-primary"></i>Event Banner
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="text-center mb-3">
+                                            <div class="banner-placeholder p-4 bg-light rounded mb-3 d-flex align-items-center justify-content-center" style="height: 150px;">
+                                                <div class="text-center">
+                                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-2"></i>
+                                                    <p class="small text-muted mb-0">Upload banner image</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group mb-0">
+                                            <div class="input-group">
+                                                {{ form.banner }}
+                                            </div>
+                                            {% if form.banner.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.banner.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text mt-2">Upload an image for your event banner. Recommended size: 1200x400px.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Category & Price Section -->
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0 py-3">
+                                        <h6 class="card-title mb-0 fw-bold">
+                                            <span class="badge bg-primary rounded-circle me-2">4</span>
+                                            <i class="fas fa-tag me-2 text-primary"></i>Category & Tags
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-4">
+                                        <div class="form-group mb-4">
+                                            <label for="id_category" class="form-label fw-semibold">Event Category <span class="text-danger">*</span></label>
+                                            {{ form.category }}
+                                            {% if form.category.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Select a category that best fits your event.</div>
+                                        </div>
+                                        
+                                        <div class="form-group mb-4">
+                                            <label for="id_tags" class="form-label fw-semibold">Event Tags</label>
+                                            {{ form.tags }}
+                                            {% if form.tags.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.tags.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Select relevant tags to help attendees find your event (e.g., AI, DevOps, Cloud Computing).</div>
+                                        </div>
+                                        
+                                        <div class="form-group mb-0">
+                                            <label for="id_ticket_price" class="form-label fw-semibold">Ticket Price (₹)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-rupee-sign"></i></span>
+                                                {{ form.ticket_price }}
+                                            </div>
+                                            {% if form.ticket_price.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.ticket_price.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Set to 0 for free events.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Help Section -->
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body p-4">
+                                        <h6 class="fw-bold mb-3"><i class="fas fa-question-circle me-2 text-primary"></i>Need Help?</h6>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Fill out all required fields marked with <span class="text-danger">*</span></li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Add detailed event description for better visibility</li>
+                                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Upload high-quality banner images</li>
+                                            <li class="mb-0"><i class="fas fa-check-circle text-success me-2"></i> Choose a relevant category for your event</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mt-4">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'organizer_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Create Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    #id_description {
+        min-height: 120px;
+    }
+    
+    .banner-placeholder {
+        border: 2px dashed #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .banner-placeholder:hover {
+        border-color: #6c757d;
+        cursor: pointer;
+    }
+    
+    .badge.rounded-circle {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        line-height: 24px;
+        font-size: 12px;
+        display: inline-block;
+        text-align: center;
+    }
+    
+    .card {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap form-control class to all form inputs
+        const formControls = document.querySelectorAll('input, select, textarea');
+        formControls.forEach(control => {
+            if (!control.classList.contains('form-control') && control.type !== 'file') {
+                control.classList.add('form-control');
+            }
+        });
+        
+        // Add Bootstrap form-select class to all select elements
+        const selectControls = document.querySelectorAll('select');
+        selectControls.forEach(select => {
+            select.classList.add('form-select');
+        });
+        
+        // Add Bootstrap form-control-file class to file input
+        const fileControl = document.querySelector('input[type="file"]');
+        if (fileControl) {
+            fileControl.classList.add('form-control');
+            
+            // Connect file input to banner placeholder
+            const placeholder = document.querySelector('.banner-placeholder');
+            if (placeholder) {
+                placeholder.addEventListener('click', function() {
+                    fileControl.click();
+                });
+                
+                // Show preview when file is selected
+                fileControl.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            placeholder.innerHTML = `<img src="${e.target.result}" class="img-fluid rounded" style="max-height: 150px;" />`;
+                        }
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+            }
+        }
+        
+        // Add date picker enhancements
+        const dateInputs = document.querySelectorAll('input[type="datetime-local"]');
+        dateInputs.forEach(input => {
+            input.classList.add('flatpickr-input');
+            // Note: If using flatpickr, initialize here
+        });
+    });
+</script>
+{% endblock %} 

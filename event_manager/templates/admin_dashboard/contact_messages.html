@@ -1,0 +1,506 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Contact Messages - CorpEventX Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Contact Messages</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Contact Messages</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-filter me-2"></i> Filters
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Status</option>
+                    <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>New</option>
+                    <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="resolved" {% if request.GET.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                    <option value="spam" {% if request.GET.status == 'spam' %}selected{% endif %}>Spam</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="date_from" class="form-label">From Date</label>
+                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ request.GET.date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label for="date_to" class="form-label">To Date</label>
+                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ request.GET.date_to }}">
+            </div>
+            <div class="col-md-3">
+                <label for="q" class="form-label">Search</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="q" name="q" placeholder="Search messages..." value="{{ request.GET.q }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Messages Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-envelope me-2"></i> Contact Messages</span>
+        <div>
+            <button type="button" class="btn btn-sm btn-info" id="exportCsvBtn">
+                <i class="fas fa-file-csv me-1"></i> Export CSV
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" id="bulkDeleteBtn" disabled>
+                <i class="fas fa-trash me-1"></i> Delete Selected
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="selectAllMessages">
+                            </div>
+                        </th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr class="{% if message.status == 'new' %}table-primary{% endif %}">
+                        <td>
+                            <div class="form-check">
+                                <input class="form-check-input message-checkbox" type="checkbox" value="{{ message.message_id }}">
+                            </div>
+                        </td>
+                        <td>{{ message.name }}</td>
+                        <td>{{ message.email }}</td>
+                        <td>{{ message.subject|truncatechars:30 }}</td>
+                        <td>{{ message.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if message.status == 'new' %}
+                                <span class="badge bg-primary">New</span>
+                            {% elif message.status == 'in_progress' %}
+                                <span class="badge bg-warning text-dark">In Progress</span>
+                            {% elif message.status == 'resolved' %}
+                                <span class="badge bg-success">Resolved</span>
+                            {% else %}
+                                <span class="badge bg-danger">Spam</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-info view-message-btn" data-bs-toggle="modal" data-bs-target="#viewMessageModal" 
+                                    data-message-id="{{ message.message_id }}"
+                                    data-message-name="{{ message.name }}"
+                                    data-message-email="{{ message.email }}"
+                                    data-message-subject="{{ message.subject }}"
+                                    data-message-content="{{ message.message }}"
+                                    data-message-date="{{ message.created_at|date:'M d, Y H:i' }}"
+                                    data-message-status="{{ message.status }}"
+                                    data-message-notes="{{ message.notes }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary reply-message-btn" data-bs-toggle="modal" data-bs-target="#replyMessageModal" 
+                                    data-message-id="{{ message.message_id }}"
+                                    data-message-name="{{ message.name }}"
+                                    data-message-email="{{ message.email }}"
+                                    data-message-subject="{{ message.subject }}">
+                                    <i class="fas fa-reply"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger delete-message-btn" data-bs-toggle="modal" data-bs-target="#deleteMessageModal" 
+                                    data-message-id="{{ message.message_id }}"
+                                    data-message-subject="{{ message.subject }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No messages found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if messages.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if messages.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ messages.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in messages.paginator.page_range %}
+                    {% if messages.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > messages.number|add:'-3' and num < messages.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if messages.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ messages.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ messages.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' and value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Message Modal -->
+<div class="modal fade" id="viewMessageModal" tabindex="-1" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewMessageModalLabel">Message Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">From</label>
+                        <p id="modalMessageName"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Email</label>
+                        <p id="modalMessageEmail"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Date</label>
+                        <p id="modalMessageDate"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Status</label>
+                        <select class="form-select" id="modalMessageStatus">
+                            <option value="new">New</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="spam">Spam</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Subject</label>
+                        <p id="modalMessageSubject"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Message</label>
+                        <div id="modalMessageContent" class="border p-3 rounded" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="modalMessageNotes" class="form-label fw-bold">Admin Notes</label>
+                        <textarea class="form-control" id="modalMessageNotes" rows="3"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveMessageChangesBtn">Save Changes</button>
+                <button type="button" class="btn btn-info" id="modalReplyBtn">Reply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reply Message Modal -->
+<div class="modal fade" id="replyMessageModal" tabindex="-1" aria-labelledby="replyMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyMessageModalLabel">Reply to Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="replyMessageForm">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="replyTo" class="form-label">To</label>
+                            <input type="email" class="form-control" id="replyTo" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="replyName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="replyName" readonly>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label for="replySubject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="replySubject">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label for="replyContent" class="form-label">Message</label>
+                            <textarea class="form-control" id="replyContent" rows="10" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Message Modal -->
+<div class="modal fade" id="deleteMessageModal" tabindex="-1" aria-labelledby="deleteMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteMessageModalLabel">Delete Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the message with subject <span id="deleteMessageSubject" class="fw-bold"></span>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteMessageBtn" class="btn btn-danger">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkDeleteModalLabel">Delete Selected Messages</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="bulkDeleteCount" class="fw-bold"></span> selected messages?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all messages checkbox
+        const selectAllCheckbox = document.getElementById('selectAllMessages');
+        const messageCheckboxes = document.querySelectorAll('.message-checkbox');
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+        
+        selectAllCheckbox.addEventListener('change', function() {
+            messageCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkDeleteButton();
+        });
+        
+        messageCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateBulkDeleteButton);
+        });
+        
+        function updateBulkDeleteButton() {
+            const checkedCount = document.querySelectorAll('.message-checkbox:checked').length;
+            bulkDeleteBtn.disabled = checkedCount === 0;
+        }
+        
+        // Bulk delete button
+        bulkDeleteBtn.addEventListener('click', function() {
+            const checkedCount = document.querySelectorAll('.message-checkbox:checked').length;
+            document.getElementById('bulkDeleteCount').textContent = checkedCount;
+            $('#bulkDeleteModal').modal('show');
+        });
+        
+        // Confirm bulk delete
+        document.getElementById('confirmBulkDeleteBtn').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.message-checkbox:checked')).map(checkbox => checkbox.value);
+            // Here you would send the IDs to the server for deletion
+            console.log('Deleting messages with IDs:', selectedIds);
+            $('#bulkDeleteModal').modal('hide');
+            // Simulate success and reload
+            setTimeout(() => {
+                alert('Selected messages deleted successfully!');
+                window.location.reload();
+            }, 1000);
+        });
+        
+        // View Message Modal
+        const viewMessageBtns = document.querySelectorAll('.view-message-btn');
+        viewMessageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const messageId = this.getAttribute('data-message-id');
+                const messageName = this.getAttribute('data-message-name');
+                const messageEmail = this.getAttribute('data-message-email');
+                const messageSubject = this.getAttribute('data-message-subject');
+                const messageContent = this.getAttribute('data-message-content');
+                const messageDate = this.getAttribute('data-message-date');
+                const messageStatus = this.getAttribute('data-message-status');
+                const messageNotes = this.getAttribute('data-message-notes');
+                
+                document.getElementById('modalMessageName').textContent = messageName;
+                document.getElementById('modalMessageEmail').textContent = messageEmail;
+                document.getElementById('modalMessageSubject').textContent = messageSubject;
+                document.getElementById('modalMessageContent').innerHTML = messageContent.replace(/\n/g, '<br>');
+                document.getElementById('modalMessageDate').textContent = messageDate;
+                document.getElementById('modalMessageStatus').value = messageStatus;
+                document.getElementById('modalMessageNotes').value = messageNotes || '';
+                
+                // Set up the reply button
+                document.getElementById('modalReplyBtn').onclick = function() {
+                    $('#viewMessageModal').modal('hide');
+                    
+                    // Pre-fill the reply modal
+                    document.getElementById('replyTo').value = messageEmail;
+                    document.getElementById('replyName').value = messageName;
+                    document.getElementById('replySubject').value = `Re: ${messageSubject}`;
+                    
+                    $('#replyMessageModal').modal('show');
+                };
+                
+                // Set up the save changes button
+                document.getElementById('saveMessageChangesBtn').onclick = function() {
+                    const newStatus = document.getElementById('modalMessageStatus').value;
+                    const newNotes = document.getElementById('modalMessageNotes').value;
+                    
+                    // Here you would send the updated data to the server
+                    console.log('Updating message:', {
+                        id: messageId,
+                        status: newStatus,
+                        notes: newNotes
+                    });
+                    
+                    // Simulate success and close modal
+                    alert('Message updated successfully!');
+                    $('#viewMessageModal').modal('hide');
+                };
+            });
+        });
+        
+        // Reply Message Modal
+        const replyMessageBtns = document.querySelectorAll('.reply-message-btn');
+        replyMessageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const messageEmail = this.getAttribute('data-message-email');
+                const messageName = this.getAttribute('data-message-name');
+                const messageSubject = this.getAttribute('data-message-subject');
+                
+                document.getElementById('replyTo').value = messageEmail;
+                document.getElementById('replyName').value = messageName;
+                document.getElementById('replySubject').value = `Re: ${messageSubject}`;
+            });
+        });
+        
+        // Reply Message Form
+        document.getElementById('replyMessageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const to = document.getElementById('replyTo').value;
+            const subject = document.getElementById('replySubject').value;
+            const content = document.getElementById('replyContent').value;
+            
+            // Here you would send the email
+            console.log('Sending email:', {
+                to: to,
+                subject: subject,
+                content: content
+            });
+            
+            // Simulate success and close modal
+            alert('Reply sent successfully!');
+            $('#replyMessageModal').modal('hide');
+        });
+        
+        // Delete Message Modal
+        const deleteMessageBtns = document.querySelectorAll('.delete-message-btn');
+        deleteMessageBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const messageId = this.getAttribute('data-message-id');
+                const messageSubject = this.getAttribute('data-message-subject');
+                
+                document.getElementById('deleteMessageSubject').textContent = messageSubject;
+                document.getElementById('confirmDeleteMessageBtn').href = `/admin/events/contactmessage/${messageId}/delete/`;
+            });
+        });
+        
+        // Export CSV
+        document.getElementById('exportCsvBtn').addEventListener('click', function() {
+            // Simulate CSV export
+            alert('Contact messages exported to CSV successfully!');
+        });
+    });
+</script>
+{% endblock %}

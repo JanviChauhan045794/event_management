@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ event.title }} - Event Ticket</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .ticket-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            page-break-inside: avoid;
+        }
+        .ticket-header {
+            background-color: #f8f9fc;
+            padding: 20px;
+            border-bottom: 1px solid #ddd;
+            width: 100%;
+            overflow: hidden;
+        }
+        .header-left {
+            float: left;
+            width: 70%;
+        }
+        .header-right {
+            float: right;
+            width: 30%;
+            text-align: right;
+        }
+        .event-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        .event-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .qr-code {
+            text-align: right;
+        }
+        .qr-code img {
+            width: 120px;
+            height: 120px;
+        }
+        .ticket-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .attendee-name {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .ticket-details {
+            width: 100%;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .ticket-detail-item {
+            float: left;
+            background-color: #f8f9fc;
+            border-radius: 4px;
+            padding: 8px 15px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .location-time {
+            width: 100%;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .location-box {
+            float: left;
+            width: 48%;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 4px;
+            margin-right: 2%;
+            box-sizing: border-box;
+        }
+        .time-box {
+            float: right;
+            width: 48%;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .location-title, .time-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .location-address {
+            font-size: 14px;
+        }
+        .time-details {
+            font-size: 14px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .icon {
+            display: inline-block;
+            width: 20px;
+            text-align: center;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-container">
+        <div class="ticket-header">
+            <div class="header-left">
+                <h1 class="event-title">{{ event.title }}</h1>
+                <p class="event-subtitle">Registration for {{ event.title }}</p>
+            </div>
+            <div class="header-right">
+                <div class="qr-code">
+                    <img src="{{ qr_code }}" alt="QR Code for Ticket">
+                </div>
+            </div>
+        </div>
+
+        <div class="ticket-body">
+            <div class="attendee-name">{{ user.first_name }} {{ user.last_name }}</div>
+
+            <div class="ticket-details">
+                <div class="ticket-detail-item">
+                    <span class="icon">🍽️</span>
+                    {{ registration.attendee_type.name|default:"Standard" }}
+                </div>
+                <div class="ticket-detail-item">
+                    <span class="icon">🏷️</span>
+                    {{ event.category.name }}
+                </div>
+                <div class="ticket-detail-item">
+                    <span class="icon">🎫</span>
+                    Ticket #{{ registration.registration_id|truncatechars:8 }}
+                </div>
+            </div>
+
+            <div class="location-time">
+                <div class="location-box">
+                    <div class="location-title">
+                        <span class="icon">📍</span>{{ location_data.location_name|upper }}
+                    </div>
+                    <div class="location-address">
+                        {% if location_data.address %}
+                            {{ location_data.address }}<br>
+                            {% if location_data.city %}{{ location_data.city }}{% endif %}
+                            {% if location_data.state %}, {{ location_data.state }}{% endif %}
+                            {% if location_data.zip %} {{ location_data.zip }}{% endif %}<br>
+                            {% if location_data.country %}{{ location_data.country }}{% endif %}
+                        {% else %}
+                            {{ event.location }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="time-box">
+                    <div class="time-title">
+                        <span class="icon">🗓️</span>DATE & TIME
+                    </div>
+                    <div class="time-details">
+                        {{ event.start_date|date:"m/d/y, g:i A" }}<br>
+                        to {{ event.end_date|date:"m/d/y, g:i A" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated on {{ now|date:"F d, Y" }} at {{ now|date:"g:i A" }}</p>
+        <p>This ticket is valid for one person only. Please bring a photo ID for verification.</p>
+        <p>CorpEventX - Your Complete Event Management Solution</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,469 @@
+{% extends "speaker/base.html" %}
+
+{% block title %}Speaker Guidelines{% endblock %}
+
+{% block page_title %}Speaker Guidelines{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                    <h2 class="mb-1">Speaker Guidelines</h2>
+                    <p class="text-muted mb-0">Essential information to help you prepare and deliver successful presentations.</p>
+                </div>
+                <div class="animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                    <a href="{% url 'speaker_guidelines_pdf' %}" class="btn btn-outline-primary me-2" target="_blank">
+                        <i class="fas fa-download me-2"></i> Download PDF
+                    </a>
+                    <a href="#" class="btn btn-primary">
+                        <i class="fas fa-print me-2"></i> Print
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guidelines Content -->
+    <div class="row mb-4">
+        <div class="col-lg-3">
+            <!-- Table of Contents -->
+            <div class="card border-0 shadow mb-4 animate__animated animate__fadeInLeft" style="animation-delay: 0.4s">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-list me-2 text-primary"></i>Contents
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="guidelines-toc">
+                        <a href="#before-event" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-calendar-minus me-2"></i> Before the Event
+                        </a>
+                        <a href="#day-of-event" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-day me-2"></i> Day of the Event
+                        </a>
+                        <a href="#presentation-tips" class="list-group-item list-group-item-action">
+                            <i class="fas fa-lightbulb me-2"></i> Presentation Tips
+                        </a>
+                        <a href="#technical-requirements" class="list-group-item list-group-item-action">
+                            <i class="fas fa-laptop me-2"></i> Technical Requirements
+                        </a>
+                        <a href="#q-and-a" class="list-group-item list-group-item-action">
+                            <i class="fas fa-question-circle me-2"></i> Q&A Sessions
+                        </a>
+                        <a href="#after-event" class="list-group-item list-group-item-action">
+                            <i class="fas fa-calendar-check me-2"></i> After the Event
+                        </a>
+                        <a href="#resources" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book me-2"></i> Additional Resources
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Checklist -->
+            <div class="card border-0 shadow animate__animated animate__fadeInLeft" style="animation-delay: 0.5s">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-tasks me-2 text-primary"></i>Quick Checklist
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="check1">
+                        <label class="form-check-label" for="check1">
+                            Submit presentation materials
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="check2">
+                        <label class="form-check-label" for="check2">
+                            Review technical requirements
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="check3">
+                        <label class="form-check-label" for="check3">
+                            Prepare for Q&A
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="check4">
+                        <label class="form-check-label" for="check4">
+                            Practice presentation timing
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="" id="check5">
+                        <label class="form-check-label" for="check5">
+                            Confirm event details
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check6">
+                        <label class="form-check-label" for="check6">
+                            Pack necessary items
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            <!-- Guidelines Content -->
+            <div class="card border-0 shadow animate__animated animate__fadeInRight" style="animation-delay: 0.4s">
+                <div class="card-body p-4">
+                    <div class="guidelines-content">
+                        <!-- Before the Event -->
+                        <section id="before-event" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-calendar-minus me-2 text-primary"></i>Before the Event
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Preparation Timeline</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Timeframe</th>
+                                                <th>Action Items</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>4 weeks before</td>
+                                                <td>
+                                                    <ul class="mb-0">
+                                                        <li>Confirm your participation and speaking slot</li>
+                                                        <li>Book travel and accommodation if needed</li>
+                                                        <li>Begin preparing your presentation content</li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2 weeks before</td>
+                                                <td>
+                                                    <ul class="mb-0">
+                                                        <li>Finalize your presentation slides</li>
+                                                        <li>Practice your presentation multiple times</li>
+                                                        <li>Submit your presentation materials</li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>1 week before</td>
+                                                <td>
+                                                    <ul class="mb-0">
+                                                        <li>Review event schedule and logistics</li>
+                                                        <li>Prepare answers for potential Q&A questions</li>
+                                                        <li>Test any demos or technical components</li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>1 day before</td>
+                                                <td>
+                                                    <ul class="mb-0">
+                                                        <li>Pack all necessary items (see checklist)</li>
+                                                        <li>Get a good night's sleep</li>
+                                                        <li>Review your presentation one final time</li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Material Submission</h5>
+                                <p>All presentation materials must be submitted at least 48 hours before your scheduled speaking time. This includes:</p>
+                                <ul>
+                                    <li>Presentation slides (PowerPoint or PDF format)</li>
+                                    <li>Any handouts for attendees</li>
+                                    <li>Demo files or code samples</li>
+                                    <li>Speaker bio and headshot (if not already provided)</li>
+                                </ul>
+                                <p>Materials can be uploaded through the <a href="#">Presentation Materials</a> section of your speaker dashboard.</p>
+                            </div>
+                        </section>
+
+                        <!-- Day of the Event -->
+                        <section id="day-of-event" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-calendar-day me-2 text-primary"></i>Day of the Event
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Arrival Time</h5>
+                                <p>Please arrive at least 60 minutes before your scheduled speaking time. This will allow you to:</p>
+                                <ul>
+                                    <li>Check in at the speaker registration desk</li>
+                                    <li>Test your presentation on the venue's equipment</li>
+                                    <li>Meet with the event coordinator or moderator</li>
+                                    <li>Familiarize yourself with the stage and equipment</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>What to Bring</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light border-0 mb-3">
+                                            <div class="card-body">
+                                                <h6 class="card-title"><i class="fas fa-check-circle text-success me-2"></i>Essential Items</h6>
+                                                <ul class="mb-0">
+                                                    <li>Laptop with your presentation</li>
+                                                    <li>Power adapter and any necessary dongles</li>
+                                                    <li>Backup copy of your presentation (USB drive)</li>
+                                                    <li>Business cards</li>
+                                                    <li>Water bottle</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light border-0">
+                                            <div class="card-body">
+                                                <h6 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>Recommended Items</h6>
+                                                <ul class="mb-0">
+                                                    <li>Presenter remote/clicker</li>
+                                                    <li>Notes or speaking outline</li>
+                                                    <li>Phone charger</li>
+                                                    <li>Throat lozenges</li>
+                                                    <li>Business cards</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Presentation Tips -->
+                        <section id="presentation-tips" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-lightbulb me-2 text-primary"></i>Presentation Tips
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Slide Design</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card border-0 shadow-sm mb-3">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="card-title mb-0"><i class="fas fa-check me-2"></i>Do</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="mb-0">
+                                                    <li>Use large, readable fonts (minimum 24pt)</li>
+                                                    <li>Keep text concise - use bullet points</li>
+                                                    <li>Include relevant images and diagrams</li>
+                                                    <li>Use high-contrast color schemes</li>
+                                                    <li>Include slide numbers</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-0 shadow-sm">
+                                            <div class="card-header bg-danger text-white">
+                                                <h6 class="card-title mb-0"><i class="fas fa-times me-2"></i>Don't</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="mb-0">
+                                                    <li>Overcrowd slides with text</li>
+                                                    <li>Use complex animations or transitions</li>
+                                                    <li>Include low-resolution images</li>
+                                                    <li>Use more than 2-3 fonts</li>
+                                                    <li>Read directly from slides</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Delivery Tips</h5>
+                                <ul>
+                                    <li><strong>Practice thoroughly</strong> - Rehearse your presentation multiple times to ensure smooth delivery and proper timing.</li>
+                                    <li><strong>Speak clearly and at a moderate pace</strong> - Be mindful of your speaking speed, especially when explaining complex concepts.</li>
+                                    <li><strong>Make eye contact</strong> - Connect with different sections of the audience throughout your presentation.</li>
+                                    <li><strong>Use natural gestures</strong> - Let your body language enhance your message, but avoid excessive movements.</li>
+                                    <li><strong>Manage your time</strong> - Practice with a timer to ensure you can complete your presentation within the allotted time.</li>
+                                    <li><strong>Engage the audience</strong> - Consider incorporating polls, questions, or brief activities to maintain audience interest.</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Technical Requirements -->
+                        <section id="technical-requirements" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-laptop me-2 text-primary"></i>Technical Requirements
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Presentation Format</h5>
+                                <ul>
+                                    <li>Aspect Ratio: 16:9 (widescreen)</li>
+                                    <li>File Formats: PowerPoint (.pptx) or PDF (.pdf)</li>
+                                    <li>Video Formats: MP4 (H.264 codec)</li>
+                                    <li>Audio: Embedded in presentation or separate MP3 files</li>
+                                </ul>
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> If your presentation includes videos, please also provide them as separate files in case of embedding issues.
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Available Equipment</h5>
+                                <p>The following equipment will be provided at the venue:</p>
+                                <ul>
+                                    <li>Projector and screen (HDMI connection)</li>
+                                    <li>Microphone (lapel or handheld, based on room size)</li>
+                                    <li>Presenter remote/clicker</li>
+                                    <li>Podium or lectern</li>
+                                    <li>Basic sound system for audio playback</li>
+                                </ul>
+                                <p>If you require any additional equipment or have special technical needs, please contact the event coordinator at least one week before the event.</p>
+                            </div>
+                        </section>
+
+                        <!-- Q&A Sessions -->
+                        <section id="q-and-a" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-question-circle me-2 text-primary"></i>Q&A Sessions
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Preparing for Q&A</h5>
+                                <p>Most presentations will include a Q&A session. Here are some tips to prepare:</p>
+                                <ul>
+                                    <li>Anticipate potential questions and prepare concise answers</li>
+                                    <li>If you don't know the answer, it's okay to say so - offer to follow up later</li>
+                                    <li>Keep answers brief to allow for multiple questions</li>
+                                    <li>Listen carefully to the entire question before responding</li>
+                                    <li>Repeat questions for the audience if the questioner doesn't use a microphone</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Managing Difficult Questions</h5>
+                                <p>Occasionally, you may receive challenging or confrontational questions. Here's how to handle them:</p>
+                                <ul>
+                                    <li>Remain calm and professional</li>
+                                    <li>Acknowledge the question's validity, even if you disagree with its premise</li>
+                                    <li>Provide a balanced response based on facts</li>
+                                    <li>If the question is off-topic, briefly address it and redirect to the presentation's focus</li>
+                                    <li>For very specific or technical questions, offer to continue the discussion after the session</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- After the Event -->
+                        <section id="after-event" class="mb-5">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-calendar-check me-2 text-primary"></i>After the Event
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Follow-Up Actions</h5>
+                                <ul>
+                                    <li>Complete any promised follow-ups from Q&A sessions</li>
+                                    <li>Share your presentation materials if appropriate</li>
+                                    <li>Connect with attendees who provided business cards or contact information</li>
+                                    <li>Review feedback from your session</li>
+                                    <li>Send a thank-you note to the event organizers</li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Feedback and Improvement</h5>
+                                <p>After your presentation, you'll receive feedback from attendees through the event platform. This feedback is valuable for improving future presentations.</p>
+                                <p>You can access your feedback reports in the <a href="#">Feedback</a> section of your speaker dashboard.</p>
+                            </div>
+                        </section>
+
+                        <!-- Additional Resources -->
+                        <section id="resources">
+                            <h3 class="border-bottom pb-2 mb-4">
+                                <i class="fas fa-book me-2 text-primary"></i>Additional Resources
+                            </h3>
+                            <div class="mb-4">
+                                <h5>Helpful Links</h5>
+                                <ul>
+                                    <li><a href="#"><i class="fas fa-external-link-alt me-2"></i>Presentation Templates</a></li>
+                                    <li><a href="#"><i class="fas fa-external-link-alt me-2"></i>Speaker Training Videos</a></li>
+                                    <li><a href="#"><i class="fas fa-external-link-alt me-2"></i>Public Speaking Tips</a></li>
+                                    <li><a href="#"><i class="fas fa-external-link-alt me-2"></i>Slide Design Best Practices</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="mb-4">
+                                <h5>Contact Information</h5>
+                                <p>If you have any questions or need assistance, please contact:</p>
+                                <div class="card bg-light border-0">
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Speaker Coordinator:</strong> Sarah Johnson</p>
+                                        <p class="mb-2"><strong>Email:</strong> <a href="mailto:speakers@corpeventx.com">speakers@corpeventx.com</a></p>
+                                        <p class="mb-2"><strong>Phone:</strong> (555) 123-4567</p>
+                                        <p class="mb-0"><strong>Response Time:</strong> Within 24 hours</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Smooth scrolling for TOC links
+        document.querySelectorAll('#guidelines-toc a').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                document.querySelectorAll('#guidelines-toc a').forEach(a => {
+                    a.classList.remove('active');
+                });
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Scroll to section
+                const targetId = this.getAttribute('href');
+                const targetSection = document.querySelector(targetId);
+                
+                window.scrollTo({
+                    top: targetSection.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Highlight TOC item based on scroll position
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('section');
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 150;
+                if (window.pageYOffset >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            document.querySelectorAll('#guidelines-toc a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === '#' + current) {
+                    a.classList.add('active');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

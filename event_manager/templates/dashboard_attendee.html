@@ -1,0 +1,246 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Attendee Dashboard - Event Manager{% endblock %}
+
+{% block dashboard_title %}Attendee Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li class="nav-item">
+    <a class="nav-link {% if request.path == '/events/dashboard/attendee/' %}active{% endif %}" href="{% url 'attendee_dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-calendar-alt"></i>
+        <span>My Events</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-search"></i>
+        <span>Browse Events</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-star"></i>
+        <span>My Reviews</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Upcoming Events</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_events.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Past Events</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ past_events.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-history fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Reviews Given</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ feedback.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Certificates</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% with certificates=0 %}
+                                {% for event in past_events %}
+                                    {% if event.has_certificate %}
+                                        {% with certificates=certificates|add:1 %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                {{ certificates }}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-certificate fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Events -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Upcoming Events</h6>
+            </div>
+            <div class="card-body">
+                {% if upcoming_events %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Attendee Type</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in upcoming_events %}
+                                    {% with registration=event.registration_set.filter.first %}
+                                    <tr>
+                                        <td>{{ event.title }}</td>
+                                        <td>{{ event.start_date|date:"F d, Y" }}</td>
+                                        <td>{{ event.location }}</td>
+                                        <td>{{ registration.attendee_type.name|default:"Standard" }}</td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>You don't have any upcoming events.</p>
+                    <a href="#" class="btn btn-primary">Browse Events</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recommended Events -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recommended Events</h6>
+            </div>
+            <div class="card-body">
+                {% if recommended_events %}
+                    <div class="row">
+                        {% for event in recommended_events %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ event.title }}</h5>
+                                        <p class="card-text">{{ event.description|truncatechars:100 }}</p>
+                                        <p><i class="fas fa-calendar-alt me-2"></i>{{ event.start_date|date:"F d, Y" }}</p>
+                                        <p><i class="fas fa-map-marker-alt me-2"></i>{{ event.location }}</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="#" class="btn btn-primary btn-sm">Register</a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No recommended events at this time.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Reviews -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Reviews</h6>
+            </div>
+            <div class="card-body">
+                {% if feedback %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Rating</th>
+                                    <th>Comment</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in feedback %}
+                                    <tr>
+                                        <td>{{ item.event.title }}</td>
+                                        <td>
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= item.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ item.comment|truncatechars:50 }}</td>
+                                        <td>{{ item.created_at|date:"F d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>You haven't submitted any reviews yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

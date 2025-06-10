@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Feedback Report</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4e73df;
+            padding-bottom: 10px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4e73df;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #4e73df;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            width: 30%;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+            margin-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .rating {
+            color: #f6c23e;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .filter-info {
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">Event Manager</div>
+        <p>Feedback Report</p>
+    </div>
+    
+    <h1>Feedback Summary</h1>
+    
+    <div class="filter-info">
+        {% if event_filter %}
+        <p>Filtered by Event: {{ event_name }}</p>
+        {% endif %}
+        {% if rating_filter %}
+        <p>Filtered by Rating: {{ rating_filter }} Star{% if rating_filter != "1" %}s{% endif %}</p>
+        {% endif %}
+    </div>
+    
+    <div class="stats-container">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_feedback }}</div>
+            <div>Total Feedback</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ avg_rating|floatformat:1 }}</div>
+            <div>Average Rating</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ events_count }}</div>
+            <div>Events</div>
+        </div>
+    </div>
+    
+    <h2>Rating Distribution</h2>
+    <table>
+        <tr>
+            <th>Rating</th>
+            <th>Count</th>
+            <th>Percentage</th>
+        </tr>
+        {% for i in "54321"|make_list %}
+        <tr>
+            <td>{{ i }} Star{% if i != "1" %}s{% endif %}</td>
+            <td>{{ rating_counts|get_item:i }}</td>
+            <td>{{ rating_distribution|get_item:i }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <h2>Feedback Details</h2>
+    <table>
+        <tr>
+            <th>Event</th>
+            <th>User</th>
+            <th>Rating</th>
+            <th>Comments</th>
+        </tr>
+        {% for feedback in feedback_list %}
+        <tr>
+            <td>{{ feedback.event.title }}</td>
+            <td>{{ feedback.user.get_full_name }}</td>
+            <td>
+                {% for i in "12345"|make_list %}
+                    {% if forloop.counter <= feedback.rating %}
+                        ★
+                    {% else %}
+                        ☆
+                    {% endif %}
+                {% endfor %}
+                ({{ feedback.rating }})
+            </td>
+            <td>{{ feedback.comments }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    {% if top_rated_events %}
+    <h2>Top Rated Events</h2>
+    <table>
+        <tr>
+            <th>Event</th>
+            <th>Average Rating</th>
+            <th>Feedback Count</th>
+        </tr>
+        {% for event in top_rated_events %}
+        <tr>
+            <td>{{ event.title }}</td>
+            <td>{{ event.avg_rating|floatformat:1 }}</td>
+            <td>{{ event.feedback_count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    
+    <div class="footer">
+        <p>Generated on {{ now|date:"F d, Y" }} at {{ now|date:"g:i A" }}</p>
+        <p>Event Manager - Your Complete Event Management Solution</p>
+    </div>
+</body>
+</html>

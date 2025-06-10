@@ -1,0 +1,24 @@
+{% extends 'organizer/base.html' %}
+
+{% block title %}Manage Speakers{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                <h2 class="mb-1">Manage Speakers</h2>
+                <p class="text-muted mb-0">Add, edit, and manage speakers for your events.</p>
+            </div>
+            <div class="d-flex align-items-center animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpeakerModal">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Speaker
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rest of the template content -->
+{% endblock %} 

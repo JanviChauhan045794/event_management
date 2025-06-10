@@ -1,0 +1,194 @@
+{% extends "attendee/base.html" %}
+
+{% block title %}Notification Preferences{% endblock %}
+
+{% block page_title %}Notification Preferences{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                    <h2 class="mb-1">Notification Preferences</h2>
+                    <p class="text-muted mb-0">Manage how you receive notifications about events.</p>
+                </div>
+                <div class="d-flex align-items-center animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                    <a href="{% url 'attendee_dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-bell me-2 text-primary"></i>Email Notification Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'notification_preferences' %}">
+                        {% csrf_token %}
+                        
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" name="email_notifications" {% if email_notifications %}checked{% endif %}>
+                            <label class="form-check-label" for="emailNotifications">
+                                <span class="fw-bold">Email Notifications</span>
+                                <p class="text-muted small mb-0">Receive email notifications about event updates, reminders, and new events.</p>
+                            </label>
+                        </div>
+                        
+                        <div class="notification-types mb-4">
+                            <h6 class="fw-bold mb-3">Notification Types</h6>
+                            
+                            <div class="list-group">
+                                <div class="list-group-item border-0 bg-light rounded mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-calendar-plus text-primary"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">New Event Notifications</h6>
+                                            <p class="text-muted small mb-0">Receive notifications when new events are created that match your interests.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 bg-light rounded mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="rounded-circle bg-success bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-edit text-success"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Event Update Notifications</h6>
+                                            <p class="text-muted small mb-0">Receive notifications when events you're registered for are updated.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 bg-light rounded mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="rounded-circle bg-warning bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-clock text-warning"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Event Reminder Notifications</h6>
+                                            <p class="text-muted small mb-0">Receive reminders before events you're registered for.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 bg-light rounded mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="rounded-circle bg-info bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-user-plus text-info"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Speaker Announcements</h6>
+                                            <p class="text-muted small mb-0">Receive notifications when new speakers are added to events you're registered for.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="list-group-item border-0 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <div class="rounded-circle bg-danger bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-star text-danger"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Feedback Requests</h6>
+                                            <p class="text-muted small mb-0">Receive requests to provide feedback after attending events.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Preferences
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>About Notifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary bg-primary bg-opacity-10 border-0">
+                        <h6 class="alert-heading fw-bold"><i class="fas fa-lightbulb me-2"></i>Why Enable Notifications?</h6>
+                        <p class="mb-0">Notifications help you stay updated about your events and never miss important updates or reminders.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Notification Channels</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-envelope text-primary"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Email Notifications</h6>
+                                <p class="text-muted small mb-0">Receive notifications directly to your email inbox.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-bell text-primary"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">In-App Notifications</h6>
+                                <p class="text-muted small mb-0">Always enabled. View notifications in the notification center.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <img src="https://cdn.iconscout.com/icon/free/png-256/free-notification-bell-1779767-1513843.png" alt="Notifications" width="100" class="mb-3 animate__animated animate__pulse animate__infinite animate__slower">
+                        <p class="text-muted small">You can change your notification preferences at any time.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

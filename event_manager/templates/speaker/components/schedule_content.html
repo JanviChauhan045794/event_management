@@ -1,0 +1,318 @@
+<!-- Schedule Content -->
+<div class="card border-0 shadow mb-4">
+    <div class="card-body">
+        <!-- Filter Form -->
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="timeFilter" class="form-label">Time Period</label>
+                <select class="form-select" id="timeFilter" name="time">
+                    <option value="all" {% if time_filter == 'all' %}selected{% endif %}>All Time</option>
+                    <option value="upcoming" {% if time_filter == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                    <option value="past" {% if time_filter == 'past' %}selected{% endif %}>Past</option>
+                    <option value="week" {% if time_filter == 'week' %}selected{% endif %}>This Week</option>
+                    <option value="month" {% if time_filter == 'month' %}selected{% endif %}>This Month</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="categoryFilter" class="form-label">Category</label>
+                <select class="form-select" id="categoryFilter" name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category.id == selected_category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="viewType" class="form-label">View Type</label>
+                <select class="form-select" id="viewType" name="view">
+                    <option value="list" {% if view_type == 'list' %}selected{% endif %}>List View</option>
+                    <option value="calendar" {% if view_type == 'calendar' %}selected{% endif %}>Calendar View</option>
+                    <option value="card" {% if view_type == 'card' %}selected{% endif %}>Card View</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+
+        <!-- Schedule Tabs -->
+        <ul class="nav nav-tabs" id="scheduleTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if time_filter == 'upcoming' or time_filter == 'all' or time_filter == 'week' or time_filter == 'month' %}active{% endif %}" 
+                        id="upcoming-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#upcoming" 
+                        type="button" 
+                        role="tab">
+                    <i class="fas fa-calendar-day me-2"></i>Upcoming
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if time_filter == 'past' %}active{% endif %}" 
+                        id="past-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#past" 
+                        type="button" 
+                        role="tab">
+                    <i class="fas fa-calendar-check me-2"></i>Past
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if view_type == 'calendar' %}active{% endif %}" 
+                        id="calendar-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#calendar" 
+                        type="button" 
+                        role="tab">
+                    <i class="fas fa-calendar-alt me-2"></i>Calendar View
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content pt-4" id="scheduleTabContent">
+            <!-- Upcoming Events Tab -->
+            <div class="tab-pane fade {% if time_filter == 'upcoming' or time_filter == 'all' or time_filter == 'week' or time_filter == 'month' %}show active{% endif %}" 
+                 id="upcoming" 
+                 role="tabpanel">
+                {% if upcoming_events %}
+                    <div class="row">
+                        {% for event in upcoming_events %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 border-0 shadow-sm hover-shadow">
+                                    {% if event.banner %}
+                                        <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 160px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-primary text-white rounded p-2 me-3 text-center" style="width: 45px;">
+                                                <div class="small">{{ event.start_date|date:"M" }}</div>
+                                                <div class="fw-bold">{{ event.start_date|date:"d" }}</div>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title mb-0">{{ event.title }}</h5>
+                                                <small class="text-muted">{{ event.category.name }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-clock text-primary me-2"></i>
+                                                <span>{{ event.start_date|date:"g:i A" }} - {{ event.end_date|date:"g:i A" }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                                <span>{{ event.location }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-users me-1"></i> {{ event.registration_set.count }} Attendees
+                                            </span>
+                                            <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i> View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="text-center py-5">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-calendar-1693591-1442634.png" alt="No Events" width="80" class="mb-3">
+                                    <h5>No Upcoming Speaking Engagements</h5>
+                                    <p class="text-muted">You don't have any upcoming speaking engagements scheduled.</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Past Events Tab -->
+            <div class="tab-pane fade {% if time_filter == 'past' %}show active{% endif %}" 
+                 id="past" 
+                 role="tabpanel">
+                {% if past_events %}
+                    <div class="row">
+                        {% for event in past_events %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 border-0 shadow-sm hover-shadow">
+                                    {% if event.banner %}
+                                        <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 160px; object-fit: cover;">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-secondary text-white rounded p-2 me-3 text-center" style="width: 45px;">
+                                                <div class="small">{{ event.start_date|date:"M" }}</div>
+                                                <div class="fw-bold">{{ event.start_date|date:"d" }}</div>
+                                            </div>
+                                            <div>
+                                                <h5 class="card-title mb-0">{{ event.title }}</h5>
+                                                <small class="text-muted">{{ event.category.name }}</small>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-clock text-secondary me-2"></i>
+                                                <span>{{ event.start_date|date:"g:i A" }} - {{ event.end_date|date:"g:i A" }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fas fa-map-marker-alt text-secondary me-2"></i>
+                                                <span>{{ event.location }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-users text-secondary me-2"></i>
+                                                <span>{{ event.registration_set.count }} Attendees</span>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                {% with feedback_count=event.feedback_set.count %}
+                                                    {% if feedback_count > 0 %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-star me-1"></i> {{ event.avg_rating|floatformat:1 }} ({{ feedback_count }})
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">No Feedback</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            </div>
+                                            <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="fas fa-eye me-1"></i> View Details
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-12">
+                                <div class="text-center py-5">
+                                    <img src="https://cdn.iconscout.com/icon/free/png-256/free-calendar-1693591-1442634.png" alt="No Events" width="80" class="mb-3">
+                                    <h5>No Past Speaking Engagements</h5>
+                                    <p class="text-muted">You haven't spoken at any events yet.</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Calendar View Tab -->
+            <div class="tab-pane fade {% if view_type == 'calendar' %}show active{% endif %}" 
+                 id="calendar" 
+                 role="tabpanel">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Speaking Stats</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="text-muted">Total Talks</div>
+                                    <div class="fw-bold">{{ total_events }}</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="text-muted">Upcoming Talks</div>
+                                    <div class="fw-bold">{{ upcoming_events.count }}</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="text-muted">Past Talks</div>
+                                    <div class="fw-bold">{{ past_events.count }}</div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-muted">Average Rating</div>
+                                    <div class="fw-bold">{{ avg_rating|default:"N/A" }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upcoming Events List -->
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Upcoming Talks</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    {% for event in upcoming_events|slice:":5" %}
+                                        <li class="list-group-item">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary text-white rounded p-2 me-3 text-center" style="width: 45px;">
+                                                    <div class="small">{{ event.start_date|date:"M" }}</div>
+                                                    <div class="fw-bold">{{ event.start_date|date:"d" }}</div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <div class="fw-bold">{{ event.title }}</div>
+                                                    <div class="small text-muted">{{ event.start_date|date:"g:i A" }}</div>
+                                                </div>
+                                                <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    {% empty %}
+                                        <li class="list-group-item text-center py-4">
+                                            <p class="text-muted mb-0">No upcoming talks</p>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-9">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-white">
+                                <h5 class="card-title mb-0">Calendar View</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Calendar View -->
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Scripts -->
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: [
+            {% for event in all_events %}
+            {
+                title: '{{ event.title }}',
+                start: '{{ event.start_date|date:"c" }}',
+                end: '{{ event.end_date|date:"c" }}',
+                url: '{% url "event_detail" event.event_id %}',
+                backgroundColor: '{% if event.start_date > now %}#4e73df{% else %}#858796{% endif %}',
+                borderColor: '{% if event.start_date > now %}#4e73df{% else %}#858796{% endif %}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.location.href = info.event.url;
+                info.jsEvent.preventDefault();
+            }
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %} 

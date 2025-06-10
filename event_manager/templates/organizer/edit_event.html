@@ -1,0 +1,538 @@
+{% extends "organizer/base.html" %}
+
+{% block title %}Edit Event - {{ event.title }}{% endblock %}
+
+{% block page_title %}Edit Event{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">
+                        <i class="fas fa-edit me-2 text-primary"></i>Edit Event: {{ event.title }}
+                    </h5>
+                    <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Event
+                    </a>
+                </div>
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>Basic Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="id_title" class="form-label fw-bold">Event Title <span class="text-danger">*</span></label>
+                                            {{ form.title }}
+                                            {% if form.title.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Choose a clear, descriptive title for your event.</div>
+                                        </div>
+
+                                        <div class="form-group mb-3">
+                                            <label for="id_description" class="form-label fw-bold">Description <span class="text-danger">*</span></label>
+                                            {{ form.description }}
+                                            {% if form.description.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">{{ form.description.help_text }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-calendar me-2 text-primary"></i>Date & Location</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="id_start_date" class="form-label fw-bold">Start Date & Time <span class="text-danger">*</span></label>
+                                                    {{ form.start_date }}
+                                                    {% if form.start_date.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.start_date.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">{{ form.start_date.help_text }}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="id_end_date" class="form-label fw-bold">End Date & Time <span class="text-danger">*</span></label>
+                                                    {{ form.end_date }}
+                                                    {% if form.end_date.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.end_date.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">{{ form.end_date.help_text }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mb-0">
+                                            <label for="id_location" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                            {{ form.location }}
+                                            {% if form.location.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Enter the full venue address or "Online" for virtual events.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-image me-2 text-primary"></i>Event Banner</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <div class="input-group">
+                                                {{ form.banner }}
+                                            </div>
+                                            {% if form.banner.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.banner.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Upload an image for your event banner. Recommended size: 1200x400px.</div>
+                                            {% if event.banner %}
+                                                <div class="mt-3">
+                                                    <div class="banner-preview">
+                                                        <img src="{{ event.banner.url }}" class="img-fluid rounded" alt="{{ event.title }}">
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card border-0 shadow-sm mb-4">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-tag me-2 text-primary"></i>Category & Price</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group mb-3">
+                                            <label for="id_category" class="form-label fw-bold">Event Category <span class="text-danger">*</span></label>
+                                            {{ form.category }}
+                                            {% if form.category.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Select a category that best fits your event.</div>
+                                        </div>
+
+                                        <div class="form-group mb-0">
+                                            <label for="id_ticket_price" class="form-label fw-bold">Ticket Price (₹)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text"><i class="fas fa-rupee-sign"></i></span>
+                                                {{ form.ticket_price }}
+                                            </div>
+                                            {% if form.ticket_price.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.ticket_price.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Set to 0 for free events.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info border-0 shadow-sm">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="fas fa-info-circle fa-2x text-info"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="alert-heading fw-bold">Remember!</h6>
+                                            <p class="mb-0">All fields marked with <span class="text-danger">*</span> are required. Make sure your event details are accurate before saving.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Speaker Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-microphone me-2 text-primary"></i>Speaker Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12 mb-3">
+                                                <label for="id_speakers" class="form-label fw-bold">Event Speakers</label>
+                                                {{ form.speakers }}
+                                                {% if form.speakers.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.speakers.errors }}</div>
+                                                {% endif %}
+                                                <div class="form-text">{{ form.speakers.help_text }}</div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <label for="id_keynote_speaker" class="form-label fw-bold">Keynote Speaker (Optional)</label>
+                                                {{ form.keynote_speaker }}
+                                                {% if form.keynote_speaker.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.keynote_speaker.errors }}</div>
+                                                {% endif %}
+                                                <div class="form-text">{{ form.keynote_speaker.help_text }}</div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <label for="id_speaker_topics" class="form-label fw-bold">Speaker Topics (Optional)</label>
+                                                {{ form.speaker_topics }}
+                                                {% if form.speaker_topics.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.speaker_topics.errors }}</div>
+                                                {% endif %}
+                                                <div class="form-text">{{ form.speaker_topics.help_text }}</div>
+                                            </div>
+
+                                            <div class="col-md-12 mb-3">
+                                                <div class="form-check form-switch">
+                                                    {{ form.notify_speakers }}
+                                                    <label class="form-check-label" for="id_notify_speakers">Notify Speakers</label>
+                                                </div>
+                                                {% if form.notify_speakers.errors %}
+                                                    <div class="invalid-feedback d-block">{{ form.notify_speakers.errors }}</div>
+                                                {% endif %}
+                                                <div class="form-text">{{ form.notify_speakers.help_text }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Capacity and Registration Settings -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+                                    <div class="card-header bg-white border-0">
+                                        <h6 class="card-title mb-0"><i class="fas fa-users me-2 text-primary"></i>Capacity & Registration</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <label for="id_capacity" class="form-label fw-bold">Event Capacity</label>
+                                                    <div class="input-group">
+                                                        {{ form.capacity }}
+                                                        <span class="input-group-text">seats</span>
+                                                    </div>
+                                                    {% if form.capacity.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.capacity.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">
+                                                        Maximum number of attendees allowed for this event.
+                                                        <span class="text-{% if available_seats > 0 %}success{% else %}danger{% endif %}">
+                                                            Currently {{ attendee_count }} registered, {{ available_seats }} seats available.
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group mb-3">
+                                                    <div class="form-check form-switch">
+                                                        {{ form.enable_registration }}
+                                                        <label class="form-check-label" for="id_enable_registration">Allow Registration</label>
+                                                    </div>
+                                                    {% if form.enable_registration.errors %}
+                                                        <div class="invalid-feedback d-block">{{ form.enable_registration.errors }}</div>
+                                                    {% endif %}
+                                                    <div class="form-text">Toggle to enable or disable registration for this event.</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <div class="form-group mb-3">
+                                                    <div class="form-check form-switch mb-2">
+                                                        {{ form.custom_registration_link }}
+                                                        <label class="form-check-label" for="id_custom_registration_link">Use Custom Registration Link</label>
+                                                    </div>
+
+                                                    <div id="registration_link_container" class="mt-2" style="display: none;">
+                                                        <label for="id_registration_link" class="form-label">Custom Registration Link</label>
+                                                        {{ form.registration_link }}
+                                                        {% if form.registration_link.errors %}
+                                                            <div class="invalid-feedback d-block">{{ form.registration_link.errors }}</div>
+                                                        {% endif %}
+                                                        <div class="form-text">Enter a custom URL for event registration.</div>
+                                                    </div>
+
+                                                    <div id="auto_registration_link_container" class="mt-2">
+                                                        <div class="input-group">
+                                                            <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                                            <input type="text" class="form-control" value="{{ event.registration_link }}" readonly>
+                                                            <button type="button" class="btn btn-outline-primary copy-link-btn" data-link="{{ event.registration_link }}">
+                                                                <i class="fas fa-copy"></i> Copy
+                                                            </button>
+                                                        </div>
+                                                        <div class="form-text">Registration link for this event.</div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- QR Code for Registration -->
+                                                <div class="form-group mb-3">
+                                                    <label class="form-label fw-bold">Registration QR Code</label>
+                                                    <div class="text-center p-3 border rounded bg-light">
+                                                        <div id="qrcode" class="d-inline-block"></div>
+                                                    </div>
+                                                    <div class="d-flex justify-content-center mt-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary me-2 download-qr-btn">
+                                                            <i class="fas fa-download"></i> Download QR
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary print-qr-btn">
+                                                            <i class="fas fa-print"></i> Print QR
+                                                        </button>
+                                                    </div>
+                                                    <div class="form-text text-center">Share this QR code for easy event registration.</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'event_detail' event.event_id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Update Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .banner-preview {
+        border-radius: 5px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+    }
+
+    #id_description {
+        min-height: 120px;
+    }
+
+    /* QR Code Styles */
+    #qrcode {
+        padding: 10px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .copy-link-btn:hover {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    /* Form Switch Styling */
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        margin-top: 0.25em;
+    }
+
+    .form-switch .form-check-input:focus {
+        border-color: rgba(var(--primary-color-rgb), 0.25);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include QR Code library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap form-control class to all form inputs
+        const formControls = document.querySelectorAll('input, select, textarea');
+        formControls.forEach(control => {
+            if (!control.classList.contains('form-control') && control.type !== 'file') {
+                control.classList.add('form-control');
+            }
+        });
+
+        // Add Bootstrap form-select class to all select elements
+        const selectControls = document.querySelectorAll('select');
+        selectControls.forEach(select => {
+            select.classList.add('form-select');
+        });
+
+        // Add Bootstrap form-control-file class to file input
+        const fileControl = document.querySelector('input[type="file"]');
+        if (fileControl) {
+            fileControl.classList.add('form-control');
+        }
+
+        // Handle custom registration link toggle
+        const customLinkCheckbox = document.getElementById('id_custom_registration_link');
+        const customLinkContainer = document.getElementById('registration_link_container');
+        const autoLinkContainer = document.getElementById('auto_registration_link_container');
+
+        function toggleRegistrationLinkFields() {
+            if (customLinkCheckbox.checked) {
+                customLinkContainer.style.display = 'block';
+                autoLinkContainer.style.display = 'none';
+            } else {
+                customLinkContainer.style.display = 'none';
+                autoLinkContainer.style.display = 'block';
+            }
+        }
+
+        // Initial toggle
+        toggleRegistrationLinkFields();
+
+        // Add event listener for changes
+        customLinkCheckbox.addEventListener('change', toggleRegistrationLinkFields);
+
+        // Generate QR code
+        const qrcodeContainer = document.getElementById('qrcode');
+        const registrationLink = "{{ event.registration_link }}";
+
+        if (qrcodeContainer && registrationLink) {
+            // Clear previous QR code if any
+            qrcodeContainer.innerHTML = '';
+
+            // Generate new QR code
+            new QRCode(qrcodeContainer, {
+                text: registrationLink,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        // Copy link button functionality
+        const copyLinkBtns = document.querySelectorAll('.copy-link-btn');
+        copyLinkBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const link = this.getAttribute('data-link');
+                navigator.clipboard.writeText(link).then(() => {
+                    // Change button text temporarily
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-primary');
+
+                    // Revert after 2 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-primary');
+                    }, 2000);
+                });
+            });
+        });
+
+        // Download QR code functionality
+        const downloadQrBtn = document.querySelector('.download-qr-btn');
+        if (downloadQrBtn) {
+            downloadQrBtn.addEventListener('click', function() {
+                const canvas = qrcodeContainer.querySelector('canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'registration-qr-code.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            });
+        }
+
+        // Print QR code functionality
+        const printQrBtn = document.querySelector('.print-qr-btn');
+        if (printQrBtn) {
+            printQrBtn.addEventListener('click', function() {
+                const canvas = qrcodeContainer.querySelector('canvas');
+                if (canvas) {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const windowContent = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Registration QR Code - ${document.title}</title>
+                            <style>
+                                body {
+                                    text-align: center;
+                                    font-family: Arial, sans-serif;
+                                }
+                                .container {
+                                    margin: 50px auto;
+                                    max-width: 500px;
+                                }
+                                img {
+                                    max-width: 100%;
+                                    height: auto;
+                                }
+                                h2 {
+                                    margin-bottom: 10px;
+                                }
+                                p {
+                                    color: #666;
+                                    margin-bottom: 30px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h2>Registration QR Code</h2>
+                                <p>Event: {{ event.title }}</p>
+                                <img src="${dataUrl}" alt="Registration QR Code">
+                                <p>Scan this QR code to register for the event</p>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(windowContent);
+                    printWindow.document.close();
+                    printWindow.onload = function() {
+                        printWindow.print();
+                        printWindow.close();
+                    };
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

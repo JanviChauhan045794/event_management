@@ -1,0 +1,797 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Check-ins Management - CorpEventX Admin{% endblock %}
+{% block page_title %}Check-ins Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Check-in Stats Cards */
+    .stats-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    /* Check-in Form Card */
+    .checkin-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .checkin-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+    }
+
+    .checkin-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Form Controls */
+    .form-floating > .form-select,
+    .form-floating > .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+        height: 58px;
+        box-shadow: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-floating > .form-select:focus,
+    .form-floating > .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), 0.25);
+    }
+
+    .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-group .input-group-text {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .input-group .form-control {
+        border-color: var(--border-color);
+    }
+
+    .input-group .btn {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .action-buttons .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-buttons .btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .action-buttons .btn:hover i {
+        transform: scale(1.2);
+    }
+
+    /* QR Scanner */
+    .qr-scanner-container {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+    }
+
+    .qr-scanner-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+    }
+
+    .qr-scanner-body {
+        padding: 1.5rem;
+    }
+
+    .qr-scanner-footer {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+    }
+
+    #qrScanner {
+        width: 100%;
+        height: 300px;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #000;
+    }
+
+    /* Search Results */
+    .search-results {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .search-results-header {
+        background: linear-gradient(45deg, rgba(var(--success-color-rgb), 0.05), rgba(var(--success-color-rgb), 0.1));
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(var(--success-color-rgb), 0.1);
+    }
+
+    .search-results-body {
+        padding: 1.5rem;
+    }
+
+    /* Check-ins Table */
+    .checkins-table-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .checkins-table-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--text-color);
+        padding: 1rem 1.25rem;
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+
+    .table tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tr:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    /* Attendee Avatar */
+    .attendee-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    tr:hover .attendee-avatar {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .attendee-name {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    tr:hover .attendee-name {
+        color: var(--primary-color);
+    }
+
+    /* Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        background-color: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        padding: 1rem 1.25rem;
+    }
+
+    .pagination-info {
+        color: var(--text-color);
+        font-size: 0.875rem;
+    }
+
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 2px;
+        color: var(--primary-color);
+        border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .pagination .page-link:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        border-color: rgba(var(--primary-color-rgb), 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.3);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: var(--text-muted);
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    /* Success Modal */
+    .success-modal .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .success-modal .modal-header {
+        background: linear-gradient(45deg, var(--success-color), #3ddaab);
+        color: white;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    .success-modal .modal-body {
+        padding: 2rem 1.5rem;
+    }
+
+    .success-modal .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .success-icon {
+        font-size: 4rem;
+        color: var(--success-color);
+        margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-in-out;
+    }
+
+    .animate-slide-down {
+        animation: slideDown 0.5s ease-in-out;
+    }
+
+    .animate-scale {
+        animation: scale 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes scale {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .action-buttons .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .table {
+            min-width: 900px;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Check-ins Management</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Check-ins</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Check-in Form -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-qrcode me-2"></i> Check-in Attendee
+    </div>
+    <div class="card-body">
+        <form id="checkinForm" class="row g-3">
+            <div class="col-md-6">
+                <label for="eventSelect" class="form-label">Event</label>
+                <select class="form-select" id="eventSelect" required>
+                    <option value="">Select Event</option>
+                    <!-- Events will be populated via JavaScript -->
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="attendeeSearch" class="form-label">Attendee</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="attendeeSearch" placeholder="Search by name or email...">
+                    <button class="btn btn-primary" type="button" id="searchAttendeeBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-primary" id="scanQrBtn">
+                        <i class="fas fa-qrcode me-2"></i> Scan QR Code
+                    </button>
+                    <button type="submit" class="btn btn-success" id="checkInBtn">
+                        <i class="fas fa-check-circle me-2"></i> Check In
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Attendee Search Results -->
+        <div id="attendeeSearchResults" class="mt-4" style="display: none;">
+            <h5>Search Results</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendeeResultsBody">
+                        <!-- Results will be populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- QR Scanner -->
+        <div id="qrScannerContainer" class="mt-4" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-camera me-2"></i> QR Scanner
+                        </div>
+                        <div class="card-body">
+                            <div id="qrScanner" style="width: 100%; height: 300px;"></div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-secondary" id="closeQrScannerBtn">
+                                <i class="fas fa-times me-2"></i> Close Scanner
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-info-circle me-2"></i> Scan Result
+                        </div>
+                        <div class="card-body">
+                            <div id="scanResult">
+                                <p class="text-muted">Scan a QR code to see the result</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check-ins Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-clipboard-check me-2"></i> Recent Check-ins</span>
+        <div>
+            <button type="button" class="btn btn-sm btn-info" id="exportCsvBtn">
+                <i class="fas fa-file-csv me-1"></i> Export CSV
+            </button>
+            <button type="button" class="btn btn-sm btn-primary" id="refreshBtn">
+                <i class="fas fa-sync-alt me-1"></i> Refresh
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Attendee</th>
+                        <th>Event</th>
+                        <th>Check-in Time</th>
+                        <th>Checked in by</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for checkin in checkins %}
+                    <tr>
+                        <td>{{ checkin.registration.user.get_full_name|default:checkin.registration.user.email }}</td>
+                        <td>{{ checkin.registration.event.title }}</td>
+                        <td>{{ checkin.checked_in_at|date:"M d, Y H:i" }}</td>
+                        <td>{{ checkin.checked_in_by.get_full_name|default:checkin.checked_in_by.email }}</td>
+                        <td>{{ checkin.notes|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">No check-ins found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if checkins.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if checkins.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ checkins.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in checkins.paginator.page_range %}
+                    {% if checkins.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > checkins.number|add:'-3' and num < checkins.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if checkins.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ checkins.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ checkins.paginator.num_pages }}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Check-in Success Modal -->
+<div class="modal fade" id="checkinSuccessModal" tabindex="-1" aria-labelledby="checkinSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="checkinSuccessModalLabel">Check-in Successful</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                </div>
+                <h4 id="successAttendeeName">John Doe</h4>
+                <p class="text-muted" id="successEventName">Event Name</p>
+                <p id="successCheckInTime">Checked in at: 12:00 PM</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="checkInAnotherBtn">Check in Another</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch events for the dropdown
+        fetchEvents();
+
+        // QR Scanner setup
+        let html5QrCode;
+
+        // Event listeners
+        document.getElementById('scanQrBtn').addEventListener('click', toggleQrScanner);
+        document.getElementById('closeQrScannerBtn').addEventListener('click', toggleQrScanner);
+        document.getElementById('searchAttendeeBtn').addEventListener('click', searchAttendees);
+        document.getElementById('checkinForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Handle manual check-in
+        });
+        document.getElementById('checkInAnotherBtn').addEventListener('click', function() {
+            $('#checkinSuccessModal').modal('hide');
+            document.getElementById('attendeeSearch').value = '';
+            document.getElementById('attendeeSearchResults').style.display = 'none';
+        });
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            window.location.reload();
+        });
+        document.getElementById('exportCsvBtn').addEventListener('click', exportCheckInsCsv);
+
+        // Functions
+        function fetchEvents() {
+            // Simulate fetching events
+            const events = [
+                { id: '1', title: 'Annual Tech Conference 2023' },
+                { id: '2', title: 'Developer Workshop' },
+                { id: '3', title: 'Leadership Summit' }
+            ];
+
+            const eventSelect = document.getElementById('eventSelect');
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = event.title;
+                eventSelect.appendChild(option);
+            });
+        }
+
+        function toggleQrScanner() {
+            const qrScannerContainer = document.getElementById('qrScannerContainer');
+
+            if (qrScannerContainer.style.display === 'none') {
+                qrScannerContainer.style.display = 'block';
+                initQrScanner();
+            } else {
+                qrScannerContainer.style.display = 'none';
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop();
+                }
+            }
+        }
+
+        function initQrScanner() {
+            const qrScanner = document.getElementById('qrScanner');
+
+            html5QrCode = new Html5Qrcode("qrScanner");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure);
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            document.getElementById('scanResult').innerHTML = `
+                <div class="alert alert-success">
+                    <h5>QR Code Detected!</h5>
+                    <p>${decodedText}</p>
+                </div>
+                <button class="btn btn-success w-100" id="confirmScanBtn">
+                    <i class="fas fa-check-circle me-2"></i> Confirm Check-in
+                </button>
+            `;
+
+            document.getElementById('confirmScanBtn').addEventListener('click', function() {
+                // Process the QR code data and check in the attendee
+                showSuccessModal('Jane Doe', 'Annual Tech Conference 2023');
+
+                // Stop scanning after successful check-in
+                if (html5QrCode && html5QrCode.isScanning) {
+                    html5QrCode.stop();
+                }
+
+                document.getElementById('qrScannerContainer').style.display = 'none';
+            });
+        }
+
+        function onScanFailure(error) {
+            // Handle scan failure silently
+        }
+
+        function searchAttendees() {
+            const searchTerm = document.getElementById('attendeeSearch').value;
+
+            if (!searchTerm) {
+                return;
+            }
+
+            // Simulate searching attendees
+            const attendees = [
+                { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Attendee' },
+                { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'Speaker' }
+            ];
+
+            const resultsBody = document.getElementById('attendeeResultsBody');
+            resultsBody.innerHTML = '';
+
+            attendees.forEach(attendee => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${attendee.name}</td>
+                    <td>${attendee.email}</td>
+                    <td>${attendee.role}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success check-in-btn" data-id="${attendee.id}" data-name="${attendee.name}">
+                            <i class="fas fa-check-circle me-1"></i> Check In
+                        </button>
+                    </td>
+                `;
+                resultsBody.appendChild(row);
+            });
+
+            document.getElementById('attendeeSearchResults').style.display = 'block';
+
+            // Add event listeners to check-in buttons
+            document.querySelectorAll('.check-in-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const attendeeId = this.getAttribute('data-id');
+                    const attendeeName = this.getAttribute('data-name');
+                    const eventSelect = document.getElementById('eventSelect');
+                    const eventName = eventSelect.options[eventSelect.selectedIndex].text;
+
+                    showSuccessModal(attendeeName, eventName);
+                });
+            });
+        }
+
+        function showSuccessModal(attendeeName, eventName) {
+            const now = new Date();
+            const formattedTime = now.toLocaleTimeString();
+
+            document.getElementById('successAttendeeName').textContent = attendeeName;
+            document.getElementById('successEventName').textContent = eventName;
+            document.getElementById('successCheckInTime').textContent = `Checked in at: ${formattedTime}`;
+
+            $('#checkinSuccessModal').modal('show');
+        }
+
+        function exportCheckInsCsv() {
+            // Simulate CSV export
+            alert('Check-ins exported to CSV successfully!');
+        }
+    });
+</script>
+{% endblock %}

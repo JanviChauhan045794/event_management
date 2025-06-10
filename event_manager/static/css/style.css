@@ -1,0 +1,49 @@
+/* Light theme (default) */
+:root {
+    --bg-primary: #ffffff;
+    --text-primary: #212529;
+    --card-bg: #ffffff;
+    --border-color: #dee2e6;
+}
+
+/* Dark theme */
+body.dark-theme {
+    --bg-primary: #212529;
+    --text-primary: #f8f9fa;
+    --card-bg: #343a40;
+    --border-color: #495057;
+}
+
+/* Apply theme variables */
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+}
+
+.border-bottom {
+    border-color: var(--border-color) !important;
+}
+
+/* Ensure text remains visible during theme switch */
+.text-muted {
+    color: #6c757d !important;
+}
+
+body.dark-theme .text-muted {
+    color: #adb5bd !important;
+}
+
+/* Adjust table colors for dark theme */
+body.dark-theme .table {
+    color: var(--text-primary);
+}
+
+body.dark-theme .table td,
+body.dark-theme .table th {
+    border-color: var(--border-color);
+}

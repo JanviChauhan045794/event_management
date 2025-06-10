@@ -1,0 +1,732 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Speakers Management - CorpEventX Admin{% endblock %}
+{% block page_title %}Speakers Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Speaker Stats Cards */
+    .stats-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    /* Pending Approvals Card */
+    .pending-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .pending-card .card-header {
+        background: linear-gradient(45deg, #f6c23e, #ffda85);
+        color: #5a5c69;
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+        border-bottom: none;
+    }
+
+    .pending-card .card-body {
+        padding: 1.25rem;
+    }
+
+    /* Speakers Table Card */
+    .speakers-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .speakers-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+    }
+
+    /* Tables */
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--text-color);
+        padding: 1rem 1.25rem;
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+
+    .table tr {
+        transition: all 0.2s ease;
+    }
+
+    .table tr:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    /* Speaker Avatar */
+    .speaker-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    tr:hover .speaker-avatar {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .speaker-name {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    tr:hover .speaker-name {
+        color: var(--primary-color);
+    }
+
+    /* Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    /* Action Buttons */
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modal Styles */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+
+    /* Speaker Profile */
+    .speaker-profile {
+        text-align: center;
+        padding: 1.5rem;
+        border-radius: 12px;
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.02), rgba(var(--primary-color-rgb), 0.05));
+        margin-bottom: 1.5rem;
+    }
+
+    .speaker-profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 1rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border: 3px solid white;
+    }
+
+    .speaker-profile-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .speaker-profile-email {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    /* Speaker Details */
+    .speaker-details {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        margin-bottom: 1.5rem;
+    }
+
+    .speaker-details-label {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .speaker-details-value {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    /* Email Form */
+    .email-form {
+        background-color: var(--card-bg);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+    }
+
+    .form-floating > .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+        height: 58px;
+        box-shadow: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-floating > .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), 0.25);
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-color);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: rgba(var(--primary-color-rgb), 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h5 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-buttons .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-buttons .btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .action-buttons .btn:hover i {
+        transform: scale(1.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Speaker Stats -->
+<div class="row stats-container">
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-primary animate-fade-in">
+            <div class="stat-card-icon">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <div class="stat-card-details">
+                <div class="stat-card-value">{{ speakers|length }}</div>
+                <div class="stat-card-label">Total Speakers</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-warning animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="stat-card-icon">
+                <i class="fas fa-user-clock"></i>
+            </div>
+            <div class="stat-card-details">
+                <div class="stat-card-value">{{ pending_approvals|length }}</div>
+                <div class="stat-card-label">Pending Approvals</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-success animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="stat-card-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-card-details">
+                <div class="stat-card-value">{{ speakers|length }}</div>
+                <div class="stat-card-label">Active Events</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="stat-card stat-card-info animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="stat-card-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-card-details">
+                <div class="stat-card-value">4.8</div>
+                <div class="stat-card-label">Avg. Rating</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+<div class="action-buttons">
+    <a href="/admin/events/speaker/add/" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add New Speaker
+    </a>
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkEmailModal">
+        <i class="fas fa-envelope me-2"></i> Email All Speakers
+    </button>
+    <button type="button" class="btn btn-info">
+        <i class="fas fa-file-export me-2"></i> Export Speakers
+    </button>
+    <button type="button" class="btn btn-secondary">
+        <i class="fas fa-cog me-2"></i> Speaker Settings
+    </button>
+</div>
+
+<!-- Pending Approvals -->
+{% if pending_approvals %}
+<div class="card pending-card animate-slide-up">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-exclamation-triangle me-2"></i> Pending Speaker Approvals</span>
+        <span class="badge bg-warning text-dark">{{ pending_approvals|length }} Pending</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Speaker</th>
+                        <th>Event</th>
+                        <th>Registered</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for registration in pending_approvals %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name={{ registration.user.get_full_name|default:registration.user.email|urlencode }}&background=random&size=40"
+                                     class="speaker-avatar me-3" alt="{{ registration.user.get_full_name|default:registration.user.email }}">
+                                <div>
+                                    <div class="speaker-name">{{ registration.user.get_full_name|default:"--" }}</div>
+                                    <div class="small text-muted">{{ registration.user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-medium">{{ registration.event.title }}</span>
+                            <div class="small text-muted">{{ registration.event.start_date|date:"M d, Y" }}</div>
+                        </td>
+                        <td>
+                            <span class="fw-medium">{{ registration.registered_at|date:"M d, Y" }}</span>
+                            <div class="small text-muted">{{ registration.registered_at|date:"g:i A" }}</div>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-success approve-speaker-btn" data-bs-toggle="modal" data-bs-target="#approveSpeakerModal"
+                                    data-user-id="{{ registration.user.user_id }}"
+                                    data-user-name="{{ registration.user.get_full_name|default:registration.user.email }}"
+                                    data-user-email="{{ registration.user.email }}"
+                                    data-event-title="{{ registration.event.title }}"
+                                    data-registration-id="{{ registration.registration_id }}">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger reject-speaker-btn" data-bs-toggle="modal" data-bs-target="#rejectSpeakerModal"
+                                    data-registration-id="{{ registration.registration_id }}"
+                                    data-user-name="{{ registration.user.get_full_name|default:registration.user.email }}"
+                                    data-user-email="{{ registration.user.email }}"
+                                    data-event-title="{{ registration.event.title }}">
+                                    <i class="fas fa-times me-1"></i> Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Speakers Table -->
+<div class="card speakers-card animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-microphone me-2"></i> Speakers</span>
+        <div class="input-group" style="width: 250px;">
+            <input type="text" class="form-control" placeholder="Search speakers..." id="speakerSearch">
+            <button class="btn btn-primary" type="button">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="speakersTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Speaker</th>
+                        <th>Contact</th>
+                        <th>Events</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for speaker in speakers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name={{ speaker.user.get_full_name|default:speaker.user.email|urlencode }}&background=random&size=40"
+                                     class="speaker-avatar me-3" alt="{{ speaker.user.get_full_name|default:speaker.user.email }}">
+                                <div>
+                                    <div class="speaker-name">{{ speaker.user.get_full_name|default:"--" }}</div>
+                                    <div class="small text-muted">{{ speaker.user.company|default:"No company" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>{{ speaker.user.email }}</div>
+                            <div class="small text-muted">{{ speaker.user.phone|default:"No phone" }}</div>
+                        </td>
+                        <td>
+                            {% with event_count=speaker.user.registration_set.filter.count %}
+                                <span class="badge bg-primary">{{ event_count }} Events</span>
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% if speaker.user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-primary view-speaker-btn" data-bs-toggle="modal" data-bs-target="#viewSpeakerModal"
+                                    data-speaker-id="{{ speaker.speaker_id }}"
+                                    data-user-id="{{ speaker.user.user_id }}"
+                                    data-user-name="{{ speaker.user.get_full_name|default:speaker.user.email }}"
+                                    data-user-email="{{ speaker.user.email }}"
+                                    data-user-phone="{{ speaker.user.phone }}"
+                                    data-user-company="{{ speaker.user.company }}"
+                                    data-speaker-bio="{{ speaker.bio }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="/admin/events/speaker/{{ speaker.speaker_id }}/change/" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-success email-speaker-btn" data-bs-toggle="modal" data-bs-target="#emailSpeakerModal"
+                                    data-user-id="{{ speaker.user.user_id }}"
+                                    data-user-name="{{ speaker.user.get_full_name|default:speaker.user.email }}"
+                                    data-user-email="{{ speaker.user.email }}">
+                                    <i class="fas fa-envelope"></i>
+                                </button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="/admin/events/user/{{ speaker.user.user_id }}/change/">
+                                                <i class="fas fa-user-edit me-2"></i> Edit User
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#">
+                                                <i class="fas fa-calendar me-2"></i> View Schedule
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        {% if speaker.user.is_active %}
+                                        <li>
+                                            <button type="button" class="dropdown-item text-warning deactivate-speaker-btn" data-bs-toggle="modal" data-bs-target="#deactivateSpeakerModal"
+                                                data-user-id="{{ speaker.user.user_id }}"
+                                                data-user-name="{{ speaker.user.get_full_name|default:speaker.user.email }}">
+                                                <i class="fas fa-ban me-2"></i> Deactivate
+                                            </button>
+                                        </li>
+                                        {% else %}
+                                        <li>
+                                            <button type="button" class="dropdown-item text-success activate-speaker-btn" data-bs-toggle="modal" data-bs-target="#activateSpeakerModal"
+                                                data-user-id="{{ speaker.user.user_id }}"
+                                                data-user-name="{{ speaker.user.get_full_name|default:speaker.user.email }}">
+                                                <i class="fas fa-check me-2"></i> Activate
+                                            </button>
+                                        </li>
+                                        {% endif %}
+                                        <li>
+                                            <button type="button" class="dropdown-item text-danger delete-speaker-btn" data-bs-toggle="modal" data-bs-target="#deleteSpeakerModal"
+                                                data-speaker-id="{{ speaker.speaker_id }}"
+                                                data-user-name="{{ speaker.user.get_full_name|default:speaker.user.email }}">
+                                                <i class="fas fa-trash-alt me-2"></i> Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="fas fa-microphone-slash text-muted mb-3"></i>
+                                <h5>No Speakers Found</h5>
+                                <p class="text-muted">There are no speakers in the system yet.</p>
+                                <a href="/admin/events/speaker/add/" class="btn btn-primary mt-3">
+                                    <i class="fas fa-plus me-2"></i> Add Speaker
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- View Speaker Modal -->
+<div class="modal fade" id="viewSpeakerModal" tabindex="-1" aria-labelledby="viewSpeakerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewSpeakerModalLabel">Speaker Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <img src="" alt="Speaker Avatar" id="modalSpeakerAvatar" class="rounded-circle" width="100" height="100">
+                    <h4 id="modalSpeakerName" class="mt-2"></h4>
+                    <p id="modalSpeakerEmail" class="text-muted"></p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Phone</label>
+                        <p id="modalSpeakerPhone"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Company</label>
+                        <p id="modalSpeakerCompany"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Bio</label>
+                        <p id="modalSpeakerBio"></p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h5>Upcoming Events</h5>
+                    <div id="speakerUpcomingEvents">
+                        <p class="text-muted">Loading events...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="modalEditSpeakerBtn" class="btn btn-primary">Edit Speaker</a>
+                <a href="#" id="modalEditUserBtn" class="btn btn-info">Edit User</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve Speaker Modal -->
+<div class="modal fade" id="approveSpeakerModal" tabindex="-1" aria-labelledby="approveSpeakerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveSpeakerModalLabel">Approve Speaker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve <span id="approveSpeakerName" class="fw-bold"></span> as a speaker?</p>
+                <p>This will grant them speaker privileges in the system.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmApproveBtn" class="btn btn-success">Approve</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Speaker Modal -->
+<div class="modal fade" id="rejectSpeakerModal" tabindex="-1" aria-labelledby="rejectSpeakerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectSpeakerModalLabel">Reject Speaker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to reject <span id="rejectSpeakerName" class="fw-bold"></span> as a speaker?</p>
+                <p>This will remove their speaker registration.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmRejectBtn" class="btn btn-danger">Reject</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View Speaker Modal
+        const viewSpeakerBtns = document.querySelectorAll('.view-speaker-btn');
+        viewSpeakerBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const speakerId = this.getAttribute('data-speaker-id');
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+                const userEmail = this.getAttribute('data-user-email');
+                const userPhone = this.getAttribute('data-user-phone') || 'Not provided';
+                const userCompany = this.getAttribute('data-user-company') || 'Not provided';
+                const speakerBio = this.getAttribute('data-speaker-bio') || 'No bio provided';
+
+                document.getElementById('modalSpeakerAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
+                document.getElementById('modalSpeakerName').textContent = userName;
+                document.getElementById('modalSpeakerEmail').textContent = userEmail;
+                document.getElementById('modalSpeakerPhone').textContent = userPhone;
+                document.getElementById('modalSpeakerCompany').textContent = userCompany;
+                document.getElementById('modalSpeakerBio').textContent = speakerBio;
+                document.getElementById('modalEditSpeakerBtn').href = `/admin/events/speaker/${speakerId}/change/`;
+                document.getElementById('modalEditUserBtn').href = `/admin/events/user/${userId}/change/`;
+
+                // TODO: Fetch upcoming events for this speaker
+                document.getElementById('speakerUpcomingEvents').innerHTML = '<p class="text-muted">No upcoming events</p>';
+            });
+        });
+
+        // Approve Speaker Modal
+        const approveSpeakerBtns = document.querySelectorAll('.approve-speaker-btn');
+        approveSpeakerBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const userName = this.getAttribute('data-user-name');
+
+                document.getElementById('approveSpeakerName').textContent = userName;
+                document.getElementById('confirmApproveBtn').href = `/events/admin/speakers/?_approve_speaker=1&user_id=${userId}`;
+            });
+        });
+
+        // Reject Speaker Modal
+        const rejectSpeakerBtns = document.querySelectorAll('.reject-speaker-btn');
+        rejectSpeakerBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const registrationId = this.getAttribute('data-registration-id');
+                const userName = this.getAttribute('data-user-name');
+
+                document.getElementById('rejectSpeakerName').textContent = userName;
+                document.getElementById('confirmRejectBtn').href = `/admin/events/registration/${registrationId}/delete/`;
+            });
+        });
+    });
+</script>
+{% endblock %}

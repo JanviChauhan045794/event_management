@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Events{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Filters Section -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <!-- Search Box -->
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search Events</label>
+                    <input type="text" class="form-control" id="search" name="q" value="{{ filters.q }}" placeholder="Search events...">
+                </div>
+
+                <!-- Category Filter -->
+                <div class="col-md-2">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if category.name == filters.category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Technology Tags Filter -->
+                <div class="col-md-2">
+                    <label for="tag" class="form-label">Tech Tag</label>
+                    <select class="form-select" id="tag" name="tag">
+                        <option value="">All Tags</option>
+                        {% for tag in tech_tags %}
+                        <option value="{{ tag.name }}" {% if tag.name == filters.tag %}selected{% endif %}>
+                            {{ tag.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Time Filter -->
+                <div class="col-md-2">
+                    <label for="time" class="form-label">Time</label>
+                    <select class="form-select" id="time" name="time">
+                        <option value="">All Time</option>
+                        <option value="upcoming" {% if filters.time == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                        <option value="past" {% if filters.time == 'past' %}selected{% endif %}>Past</option>
+                    </select>
+                </div>
+
+                <!-- View Type -->
+                <div class="col-md-2">
+                    <label for="view" class="form-label">Show</label>
+                    <select class="form-select" id="view" name="view">
+                        <option value="all_events" {% if filters.view == 'all_events' %}selected{% endif %}>All Events</option>
+                        <option value="my_events" {% if filters.view == 'my_events' %}selected{% endif %}>My Events</option>
+                    </select>
+                </div>
+
+                <!-- Apply Filters Button -->
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                {% if event.banner %}
+                <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.title }}</h5>
+                    <p class="card-text text-muted mb-2">
+                        <i class="fas fa-calendar-alt me-2"></i>{{ event.start_date|date:"M d, Y" }}
+                        <span class="mx-2">|</span>
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ event.location }}
+                    </p>
+                    
+                    <!-- Category and Tags -->
+                    <div class="mb-3">
+                        <span class="badge bg-primary me-2">{{ event.category.name }}</span>
+                        {% for tag in event.tags.all %}
+                        <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'event_detail' event.event_id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-info-circle me-2"></i>View Details
+                        </a>
+                        {% if event.registration %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-2"></i>Registered
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No events found matching your criteria.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if events.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if events.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ events.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in events.paginator.page_range %}
+            <li class="page-item {% if events.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if events.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ events.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize select2 for better dropdown UX
+    $('#category, #tag').select2({
+        theme: 'bootstrap-5',
+        width: '100%'
+    });
+});
+</script>
+{% endblock %} 

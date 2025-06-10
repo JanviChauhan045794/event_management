@@ -1,0 +1,300 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Site Settings - CorpEventX Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Site Settings</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Site Settings</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cog me-2"></i> Settings Menu
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="settings-tabs" role="tablist">
+                    <a class="list-group-item list-group-item-action active" id="general-tab" data-bs-toggle="list" href="#general" role="tab" aria-controls="general">
+                        <i class="fas fa-globe me-2"></i> General
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="appearance-tab" data-bs-toggle="list" href="#appearance" role="tab" aria-controls="appearance">
+                        <i class="fas fa-palette me-2"></i> Appearance
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="contact-tab" data-bs-toggle="list" href="#contact" role="tab" aria-controls="contact">
+                        <i class="fas fa-address-card me-2"></i> Contact Information
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="social-tab" data-bs-toggle="list" href="#social" role="tab" aria-controls="social">
+                        <i class="fas fa-share-alt me-2"></i> Social Media
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="seo-tab" data-bs-toggle="list" href="#seo" role="tab" aria-controls="seo">
+                        <i class="fas fa-search me-2"></i> SEO
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="maintenance-tab" data-bs-toggle="list" href="#maintenance" role="tab" aria-controls="maintenance">
+                        <i class="fas fa-tools me-2"></i> Maintenance
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- General Settings -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel" aria-labelledby="general-tab">
+                        <h4 class="mb-4">General Settings</h4>
+                        <form id="generalSettingsForm">
+                            <div class="mb-3">
+                                <label for="siteName" class="form-label">Site Name</label>
+                                <input type="text" class="form-control" id="siteName" value="{{ site_settings.site_name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="footerText" class="form-label">Footer Text</label>
+                                <textarea class="form-control" id="footerText" rows="3">{{ site_settings.footer_text }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="siteLogo" class="form-label">Site Logo</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="siteLogo">
+                                    <button class="btn btn-outline-secondary" type="button">Upload</button>
+                                </div>
+                                {% if site_settings.site_logo %}
+                                <div class="mt-2">
+                                    <img src="{{ site_settings.site_logo.url }}" alt="Site Logo" class="img-thumbnail" style="max-height: 100px;">
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                <label for="favicon" class="form-label">Favicon</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="favicon">
+                                    <button class="btn btn-outline-secondary" type="button">Upload</button>
+                                </div>
+                                {% if site_settings.favicon %}
+                                <div class="mt-2">
+                                    <img src="{{ site_settings.favicon.url }}" alt="Favicon" class="img-thumbnail" style="max-height: 50px;">
+                                </div>
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save General Settings</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Appearance Settings -->
+                    <div class="tab-pane fade" id="appearance" role="tabpanel" aria-labelledby="appearance-tab">
+                        <h4 class="mb-4">Appearance Settings</h4>
+                        <form id="appearanceSettingsForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="primaryColor" class="form-label">Primary Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="primaryColor" value="{{ site_settings.primary_color }}" title="Choose primary color">
+                                        <input type="text" class="form-control" value="{{ site_settings.primary_color }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="secondaryColor" class="form-label">Secondary Color</label>
+                                    <div class="input-group">
+                                        <input type="color" class="form-control form-control-color" id="secondaryColor" value="{{ site_settings.secondary_color }}" title="Choose secondary color">
+                                        <input type="text" class="form-control" value="{{ site_settings.secondary_color }}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Preview</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header" id="previewHeader" style="background-color: {{ site_settings.primary_color }}; color: white;">
+                                                Header
+                                            </div>
+                                            <div class="card-body">
+                                                <h5 class="card-title" style="color: {{ site_settings.primary_color }};">Card Title</h5>
+                                                <p class="card-text">This is a preview of how your site colors will look.</p>
+                                                <button class="btn" id="previewButton" style="background-color: {{ site_settings.primary_color }}; color: white;">Button</button>
+                                            </div>
+                                            <div class="card-footer" id="previewFooter" style="background-color: {{ site_settings.secondary_color }}; color: white;">
+                                                Footer
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Appearance Settings</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                        <h4 class="mb-4">Contact Information</h4>
+                        <form id="contactSettingsForm">
+                            <div class="mb-3">
+                                <label for="contactEmail" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="contactEmail" value="{{ contact_info.email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactPhone" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="contactPhone" value="{{ contact_info.phone }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactAddress" class="form-label">Address</label>
+                                <textarea class="form-control" id="contactAddress" rows="3">{{ contact_info.address }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="googleMapsEmbed" class="form-label">Google Maps Embed Code</label>
+                                <textarea class="form-control" id="googleMapsEmbed" rows="3">{{ contact_info.google_maps_embed }}</textarea>
+                                <div class="form-text">Paste the Google Maps embed code here to display a map on your contact page.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactFormRecipients" class="form-label">Contact Form Recipients</label>
+                                <input type="text" class="form-control" id="contactFormRecipients" value="{{ contact_info.contact_form_recipients }}">
+                                <div class="form-text">Enter email addresses separated by commas to receive contact form submissions.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Contact Information</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Social Media -->
+                    <div class="tab-pane fade" id="social" role="tabpanel" aria-labelledby="social-tab">
+                        <h4 class="mb-4">Social Media Links</h4>
+                        <form id="socialSettingsForm">
+                            <div class="mb-3">
+                                <label for="facebookUrl" class="form-label">
+                                    <i class="fab fa-facebook me-2"></i> Facebook URL
+                                </label>
+                                <input type="url" class="form-control" id="facebookUrl" value="{{ contact_info.facebook_url }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="twitterUrl" class="form-label">
+                                    <i class="fab fa-twitter me-2"></i> Twitter URL
+                                </label>
+                                <input type="url" class="form-control" id="twitterUrl" value="{{ contact_info.twitter_url }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="instagramUrl" class="form-label">
+                                    <i class="fab fa-instagram me-2"></i> Instagram URL
+                                </label>
+                                <input type="url" class="form-control" id="instagramUrl" value="{{ contact_info.instagram_url }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="linkedinUrl" class="form-label">
+                                    <i class="fab fa-linkedin me-2"></i> LinkedIn URL
+                                </label>
+                                <input type="url" class="form-control" id="linkedinUrl" value="{{ contact_info.linkedin_url }}">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Social Media Links</button>
+                        </form>
+                    </div>
+                    
+                    <!-- SEO Settings -->
+                    <div class="tab-pane fade" id="seo" role="tabpanel" aria-labelledby="seo-tab">
+                        <h4 class="mb-4">SEO Settings</h4>
+                        <form id="seoSettingsForm">
+                            <div class="mb-3">
+                                <label for="metaDescription" class="form-label">Meta Description</label>
+                                <textarea class="form-control" id="metaDescription" rows="3">{{ site_settings.meta_description }}</textarea>
+                                <div class="form-text">A short description of your site for search engines. Aim for 150-160 characters.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="metaKeywords" class="form-label">Meta Keywords</label>
+                                <textarea class="form-control" id="metaKeywords" rows="3">{{ site_settings.meta_keywords }}</textarea>
+                                <div class="form-text">Keywords related to your site, separated by commas.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="googleAnalyticsId" class="form-label">Google Analytics ID</label>
+                                <input type="text" class="form-control" id="googleAnalyticsId" value="{{ site_settings.google_analytics_id }}">
+                                <div class="form-text">Your Google Analytics tracking ID (e.g., UA-XXXXXXXX-X or G-XXXXXXXXXX).</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save SEO Settings</button>
+                        </form>
+                    </div>
+                    
+                    <!-- Maintenance Mode -->
+                    <div class="tab-pane fade" id="maintenance" role="tabpanel" aria-labelledby="maintenance-tab">
+                        <h4 class="mb-4">Maintenance Mode</h4>
+                        <form id="maintenanceSettingsForm">
+                            <div class="mb-3 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="maintenanceMode" {% if site_settings.maintenance_mode %}checked{% endif %}>
+                                <label class="form-check-label" for="maintenanceMode">Enable Maintenance Mode</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maintenanceMessage" class="form-label">Maintenance Message</label>
+                                <textarea class="form-control" id="maintenanceMessage" rows="3">{{ site_settings.maintenance_message }}</textarea>
+                                <div class="form-text">This message will be displayed to visitors when maintenance mode is enabled.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Maintenance Settings</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Color preview functionality
+        const primaryColorInput = document.getElementById('primaryColor');
+        const secondaryColorInput = document.getElementById('secondaryColor');
+        const previewHeader = document.getElementById('previewHeader');
+        const previewButton = document.getElementById('previewButton');
+        const previewFooter = document.getElementById('previewFooter');
+        
+        primaryColorInput.addEventListener('input', function() {
+            const color = this.value;
+            previewHeader.style.backgroundColor = color;
+            previewButton.style.backgroundColor = color;
+            document.querySelector('#primaryColor + input').value = color;
+        });
+        
+        secondaryColorInput.addEventListener('input', function() {
+            const color = this.value;
+            previewFooter.style.backgroundColor = color;
+            document.querySelector('#secondaryColor + input').value = color;
+        });
+        
+        // Form submissions
+        const forms = [
+            'generalSettingsForm',
+            'appearanceSettingsForm',
+            'contactSettingsForm',
+            'socialSettingsForm',
+            'seoSettingsForm',
+            'maintenanceSettingsForm'
+        ];
+        
+        forms.forEach(formId => {
+            document.getElementById(formId).addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Here you would collect the form data and send it to the server
+                console.log(`Saving ${formId} data...`);
+                
+                // Simulate success
+                alert('Settings saved successfully!');
+            });
+        });
+        
+        // Maintenance mode toggle
+        document.getElementById('maintenanceMode').addEventListener('change', function() {
+            if (this.checked) {
+                if (!confirm('Enabling maintenance mode will make your site inaccessible to regular users. Are you sure you want to continue?')) {
+                    this.checked = false;
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

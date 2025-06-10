@@ -1,0 +1,163 @@
+{% load static %}
+
+<div class="dropdown notification-dropdown">
+    <button class="btn btn-link text-dark position-relative p-0 me-3" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fas fa-bell fa-lg"></i>
+        {% if unread_count > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ unread_count }}
+            <span class="visually-hidden">unread notifications</span>
+        </span>
+        {% endif %}
+    </button>
+    <div class="dropdown-menu dropdown-menu-end shadow-lg notification-menu" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 500px; overflow-y: auto;">
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <h6 class="mb-0">Notifications</h6>
+            {% if notifications %}
+            <button class="btn btn-sm btn-link text-primary" onclick="markAllAsRead()">
+                Mark all as read
+            </button>
+            {% endif %}
+        </div>
+        
+        {% if notifications %}
+        <div class="notification-list">
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification.is_read %}unread{% endif %}" data-notification-id="{{ notification.id }}">
+                <a href="#" class="dropdown-item px-3 py-2 border-bottom {% if not notification.is_read %}bg-light{% endif %}" onclick="handleNotificationClick(event, {{ notification.id }})">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i class="{{ notification.icon_class }} fa-lg text-primary"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h6 class="mb-1 text-truncate">{{ notification.title }}</h6>
+                            <p class="mb-1 small text-muted text-truncate">{{ notification.message }}</p>
+                            <small class="text-muted">{{ notification.time_since }}</small>
+                        </div>
+                        {% if not notification.is_read %}
+                        <div class="ms-2">
+                            <span class="badge bg-primary rounded-circle" style="width: 8px; height: 8px;"></span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+            <p class="text-muted mb-0">No notifications yet</p>
+        </div>
+        {% endif %}
+        
+        {% if notifications %}
+        <div class="text-center p-2 border-top">
+            <a href="{% url 'all_notifications' %}" class="btn btn-link btn-sm text-primary">View All Notifications</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.notification-dropdown .dropdown-menu {
+    margin-top: 0.5rem;
+}
+
+.notification-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.notification-item.unread .dropdown-item {
+    position: relative;
+}
+
+.notification-item.unread .dropdown-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background-color: var(--bs-primary);
+}
+</style>
+
+<script>
+function handleNotificationClick(event, notificationId) {
+    event.preventDefault();
+    
+    // Mark notification as read
+    fetch(`{% url 'mark_notification_read' notification_id='00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', notificationId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            notificationItem.classList.remove('unread');
+            notificationItem.querySelector('.dropdown-item').classList.remove('bg-light');
+            const badge = notificationItem.querySelector('.badge');
+            if (badge) badge.remove();
+            
+            // Update unread count
+            const countBadge = document.querySelector('.badge.rounded-pill');
+            if (countBadge) {
+                const count = parseInt(countBadge.textContent) - 1;
+                if (count > 0) {
+                    countBadge.textContent = count;
+                } else {
+                    countBadge.remove();
+                }
+            }
+        }
+    });
+}
+
+function markAllAsRead() {
+    fetch('{% url "mark_all_notifications_read" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                item.querySelector('.dropdown-item').classList.remove('bg-light');
+                const badge = item.querySelector('.badge');
+                if (badge) badge.remove();
+            });
+            
+            // Remove unread count badge
+            const countBadge = document.querySelector('.badge.rounded-pill');
+            if (countBadge) countBadge.remove();
+        }
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script> 

@@ -1,0 +1,99 @@
+<div class="sidebar-wrapper">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="https://cdn.iconscout.com/icon/free/png-256/free-event-management-1-1142968.png" alt="Logo" class="sidebar-logo">
+            <div class="sidebar-title">CorpEventX</div>
+        </div>
+    </div>
+
+    <div class="sidebar-user">
+        <div class="user-avatar bg-primary rounded-circle p-2">
+            <i class="fas fa-user-tie fa-lg"></i>
+        </div>
+        <div class="user-info">
+            <div class="fw-bold text-white">{{ request.user.get_full_name }}</div>
+            <div class="user-role">Speaker</div>
+        </div>
+    </div>
+
+    <ul class="sidebar-menu">
+        <div class="sidebar-header">Main</div>
+        <li class="sidebar-item {% if request.path == '/events/dashboard/speaker/' %}active{% endif %}">
+            <a href="{% url 'speaker_dashboard' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/speaker/schedule/' in request.path %}active{% endif %}">
+            <a href="{% url 'speaker_schedule' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-calendar-alt"></i></span>
+                <span>Events</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/speaker/schedule/' in request.path %}active{% endif %}">
+            <a href="{% url 'speaker_schedule' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-clock"></i></span>
+                <span>Speaking Schedule</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/speaker/materials/' in request.path %}active{% endif %}">
+            <a href="{% url 'speaker_materials' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-file-upload"></i></span>
+                <span>Presentation Materials</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/speaker/guidelines/' in request.path %}active{% endif %}">
+            <a href="{% url 'speaker_guidelines' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-book"></i></span>
+                <span>Speaker Guidelines</span>
+            </a>
+        </li>
+
+        <div class="sidebar-header">Feedback</div>
+        <li class="sidebar-item {% if '/events/speaker/feedback/' in request.path %}active{% endif %}">
+            <a href="{% url 'speaker_feedback' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-comment-alt"></i></span>
+                <span>Feedback</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/reports/' in request.path %}active{% endif %}">
+            <a href="{% url 'reports' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                <span>Analytics</span>
+            </a>
+        </li>
+
+        <div class="sidebar-header">Account</div>
+        <li class="sidebar-item {% if '/events/profile/' in request.path %}active{% endif %}">
+            <a href="#" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-user-cog"></i></span>
+                <span>Profile</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if '/events/notifications/' in request.path %}active{% endif %}">
+            <a href="{% url 'get_notifications' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-bell"></i></span>
+                <span>Notifications</span>
+            </a>
+        </li>
+        <li class="sidebar-item">
+            <a href="{% url 'logout' %}" class="sidebar-link">
+                <span class="sidebar-icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="theme-toggle">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider round">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </span>
+            </label>
+            <span class="theme-mode text-white">Light Mode</span>
+        </div>
+    </div>
+</div>

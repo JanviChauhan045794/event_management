@@ -1,0 +1,95 @@
+{% load static %}
+<div class="sidebar-wrapper animate__animated animate__fadeIn">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <img src="{% static 'img/logo.png' %}" alt="Logo" class="sidebar-logo animate__animated animate__pulse animate__infinite animate__slower" onerror="this.src='https://via.placeholder.com/50x50?text=EM'; this.onerror='';">
+            <span class="sidebar-title">CorpEventX</span>
+        </div>
+        <button class="btn btn-link sidebar-toggle d-md-none" id="sidebarCollapseBtn">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-user animate__animated animate__fadeInLeft">
+        <div class="user-avatar bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="fas fa-user text-primary"></i>
+        </div>
+        <div class="user-info">
+            <h6 class="mb-0 fw-bold">{{ request.user.get_full_name }}</h6>
+            <span class="user-role text-primary">Attendee</span>
+        </div>
+    </div>
+
+    <ul class="sidebar-menu">
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'attendee_dashboard' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.1s">
+            <a href="{% url 'attendee_dashboard' %}" class="sidebar-link">
+                <i class="fas fa-home me-2"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'my_tickets' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+            <a href="{% url 'my_tickets' %}" class="sidebar-link">
+                <i class="fas fa-ticket-alt me-2"></i>
+                <span>My Tickets</span>
+            </a>
+        </li>
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'recent_events' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.3s">
+            <a href="{% url 'recent_events' %}" class="sidebar-link">
+                <i class="fas fa-calendar me-2"></i>
+                <span>Recent Events</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'browse_events' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.25s">
+            <a href="{% url 'browse_events' %}" class="sidebar-link">
+                <i class="fas fa-search me-2"></i>
+                <span>Browse Events</span>
+            </a>
+        </li>
+
+        <li class="sidebar-header animate__animated animate__fadeInLeft" style="animation-delay: 0.35s">Feedback</li>
+
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'my_reviews' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.4s">
+            <a href="{% url 'my_reviews' %}" class="sidebar-link">
+                <i class="fas fa-star me-2"></i>
+                <span>My Reviews</span>
+            </a>
+        </li>
+
+        <li class="sidebar-header animate__animated animate__fadeInLeft" style="animation-delay: 0.45s">Account</li>
+
+        <li class="sidebar-item {% if request.resolver_match.url_name == 'attendee_profile' %}active{% endif %} animate__animated animate__fadeInLeft" style="animation-delay: 0.5s">
+            <a href="{% url 'attendee_profile' %}" class="sidebar-link">
+                <i class="fas fa-user me-2"></i>
+                <span>Profile</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item animate__animated animate__fadeInLeft" style="animation-delay: 0.55s">
+            <a href="{% url 'index' %}" class="sidebar-link">
+                <i class="fas fa-home me-2"></i>
+                <span>Back to Home</span>
+            </a>
+        </li>
+
+        <li class="sidebar-item animate__animated animate__fadeInLeft" style="animation-delay: 0.6s">
+            <a href="{% url 'logout' %}" class="sidebar-link">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer animate__animated animate__fadeInUp" style="animation-delay: 0.8s">
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="theme-toggle">
+                <input type="checkbox" id="theme-toggle" />
+                <div class="slider round">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </div>
+            </label>
+            <span class="theme-mode">Light Mode</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Access - CorpEventX{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .admin-login-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .admin-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .admin-card-header {
+        background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .admin-logo {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+
+    .admin-card-body {
+        padding: 30px;
+    }
+
+    .form-control {
+        border-radius: 5px;
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(58, 123, 213, 0.25);
+        border-color: #3a7bd5;
+    }
+
+    .btn-admin {
+        background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+        border: none;
+        padding: 12px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .btn-admin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-footer {
+        text-align: center;
+        padding: 15px;
+        border-top: 1px solid #f0f0f0;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container admin-login-container">
+    <div class="row justify-content-center w-100">
+        <div class="col-md-5">
+            <div class="card admin-card">
+                <div class="admin-card-header">
+                    <div class="admin-logo">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h3 class="mb-0">CorpEventX Admin</h3>
+                    <p class="mb-0">Enter your credentials to access the admin dashboard</p>
+                </div>
+                <div class="admin-card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" action="{% url 'event_admin_submit' %}">
+                        {% csrf_token %}
+                        <!-- Explicit CSRF token as a hidden field for extra security -->
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+                        <div class="mb-4">
+                            <label for="email" class="form-label">Admin Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="admin@example.com" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-admin">
+                                <i class="fas fa-sign-in-alt me-2"></i> Access Admin Dashboard
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="admin-footer">
+                    <p class="mb-0">This page is for administrators only. <a href="{% url 'login' %}" class="text-decoration-none">Regular users click here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

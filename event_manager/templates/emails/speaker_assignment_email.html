@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaker Assignment: {{ event.title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .logo {
+            max-width: 150px;
+            margin-bottom: 15px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .event-card {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #4e73df;
+        }
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4e73df;
+        }
+        .event-details {
+            margin-bottom: 15px;
+        }
+        .event-detail {
+            margin-bottom: 5px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4e73df;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #777;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: #4e73df;
+            text-decoration: none;
+        }
+        .keynote-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #212529;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+        .topic-section {
+            background-color: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://via.placeholder.com/150x50?text=CorpEventX" alt="CorpEventX Logo" class="logo">
+            <h1>Speaker Assignment</h1>
+        </div>
+        
+        <div class="content">
+            <p>Hello {{ user.get_full_name|default:user.email }},</p>
+            
+            <p>You have been assigned as a <strong>{{ role_text }}</strong> for the following event:</p>
+            
+            <div class="event-card">
+                <div class="event-title">
+                    {{ event.title }}
+                    {% if is_keynote %}
+                    <span class="keynote-badge">KEYNOTE</span>
+                    {% endif %}
+                </div>
+                <div class="event-details">
+                    <div class="event-detail"><strong>Date:</strong> {{ event.start_date|date:"F d, Y" }}</div>
+                    <div class="event-detail"><strong>Time:</strong> {{ event.start_date|date:"g:i A" }} - {{ event.end_date|date:"g:i A" }}</div>
+                    <div class="event-detail"><strong>Location:</strong> {{ event.location }}</div>
+                    
+                    {% if topic %}
+                    <div class="topic-section">
+                        <strong>Your Topic:</strong> {{ topic }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <a href="http://127.0.0.1:8000{{ event_url }}" class="button" style="margin-right: 10px;">View Event Details</a>
+                    <a href="http://127.0.0.1:8000{{ speaker_dashboard_url }}" class="button" style="background-color: #28a745;">Go to Speaker Dashboard</a>
+                </div>
+            </div>
+            
+            <p>Please review the event details and prepare your presentation materials. If you have any questions or need to make changes to your topic, please contact the event organizer.</p>
+            
+            <p>You can upload your presentation materials through your speaker dashboard.</p>
+            
+            <p>Thank you for your participation!</p>
+        </div>
+        
+        <div class="footer">
+            <div class="social-links">
+                <a href="#" class="social-link">Facebook</a>
+                <a href="#" class="social-link">Twitter</a>
+                <a href="#" class="social-link">LinkedIn</a>
+            </div>
+            <p>&copy; 2025 CorpEventX. All rights reserved.</p>
+            <p>
+                If you don't want to receive these emails, you can 
+                <a href="http://127.0.0.1:8000/events/dashboard/speaker/notification-preferences/">update your preferences</a>.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

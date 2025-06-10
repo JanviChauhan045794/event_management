@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ event.title }} - Event Details</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4e73df;
+            padding-bottom: 10px;
+        }
+        .banner {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4e73df;
+        }
+        .event-meta {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+        }
+        .meta-item {
+            margin-bottom: 10px;
+        }
+        .meta-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        .description {
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+            width: 45%;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #4e73df;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .price-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #1cc88a;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">CorpEventX</div>
+        <p>Event Details Report</p>
+    </div>
+
+    {% if event.banner %}
+    <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="banner">
+    {% endif %}
+
+    <h1>{{ event.title }}</h1>
+
+    <div class="badges">
+        <span class="category-badge">{{ event.category.name }}</span>
+        {% if event.ticket_price > 0 %}
+            <span class="price-badge">₹{{ event.ticket_price }}</span>
+        {% else %}
+            <span class="price-badge">Free</span>
+        {% endif %}
+    </div>
+
+    <div class="event-meta">
+        <div class="meta-item">
+            <span class="meta-label">Organizer:</span>
+            <span>{{ event.organizer.first_name }} {{ event.organizer.last_name }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Start Date:</span>
+            <span>{{ event.start_date|date:"F d, Y" }} at {{ event.start_date|date:"g:i A" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">End Date:</span>
+            <span>{{ event.end_date|date:"F d, Y" }} at {{ event.end_date|date:"g:i A" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Location:</span>
+            <span>{{ event.location }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Event ID:</span>
+            <span>{{ event.event_id }}</span>
+        </div>
+    </div>
+
+    <h2>Event Description</h2>
+    <div class="description">
+        {{ event.description|linebreaks }}
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-value">{{ attendees_count }}</div>
+            <div>Registered Attendees</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ speakers_count }}</div>
+            <div>Speakers</div>
+        </div>
+    </div>
+
+    {% if event_speakers %}
+    <h2>Event Speakers</h2>
+    <style>
+        .speakers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .speaker-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f8f9fc;
+        }
+        .speaker-card.keynote {
+            border-color: #f6c23e;
+            background-color: #fff9e6;
+        }
+        .speaker-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .speaker-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #4e73df;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .speaker-name {
+            font-weight: bold;
+        }
+        .speaker-role {
+            font-size: 12px;
+            color: #666;
+        }
+        .speaker-topic {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .keynote-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #f6c23e;
+            color: #212529;
+            border-radius: 10px;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+    </style>
+
+    <div class="speakers-grid">
+        {% for event_speaker in event_speakers %}
+        <div class="speaker-card {% if event_speaker.is_keynote %}keynote{% endif %}">
+            <div class="speaker-header">
+                <div class="speaker-avatar">
+                    {{ event_speaker.speaker.user.first_name|first }}{{ event_speaker.speaker.user.last_name|first }}
+                </div>
+                <div>
+                    <div class="speaker-name">
+                        {{ event_speaker.speaker.user.first_name }} {{ event_speaker.speaker.user.last_name }}
+                        {% if event_speaker.is_keynote %}
+                        <span class="keynote-badge">KEYNOTE</span>
+                        {% endif %}
+                    </div>
+                    <div class="speaker-role">
+                        {% if event_speaker.is_keynote %}Keynote Speaker{% else %}Speaker{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% if event_speaker.topic %}
+            <div class="speaker-topic">
+                Topic: {{ event_speaker.topic }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        <p>Generated on {{ now|date:"F d, Y" }} at {{ now|date:"g:i A" }}</p>
+        <p>CorpEventX - Your Complete Event Management Solution</p>
+    </div>
+</body>
+</html>

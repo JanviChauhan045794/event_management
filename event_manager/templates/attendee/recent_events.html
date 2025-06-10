@@ -1,0 +1,210 @@
+{% extends "attendee/base.html" %}
+
+{% block title %}Recent Events{% endblock %}
+
+{% block page_title %}Recent Events{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="animate__animated animate__fadeInLeft" data-animation-delay="200">
+                    <h2 class="mb-1">My Recent Events</h2>
+                    <p class="text-muted mb-0">View and manage your registered events</p>
+                </div>
+                <div class="d-flex align-items-center animate__animated animate__fadeInRight" data-animation-delay="300">
+                    <a href="{% url 'browse_events' %}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Browse More Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <!-- Search Box -->
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search Events</label>
+                    <input type="text" class="form-control" id="search" name="q" value="{{ filters.q }}" placeholder="Search events...">
+                </div>
+
+                <!-- Category Filter -->
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if category.name == filters.category %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Time Filter -->
+                <div class="col-md-3">
+                    <label for="time" class="form-label">Time</label>
+                    <select class="form-select" id="time" name="time">
+                        <option value="">All Time</option>
+                        <option value="upcoming" {% if filters.time == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                        <option value="past" {% if filters.time == 'past' %}selected{% endif %}>Past</option>
+                    </select>
+                </div>
+
+                <!-- Apply Filters Button -->
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-2"></i>Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="row">
+        {% for event in events %}
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm hover-shadow animate__animated animate__fadeInUp" data-animation-delay="{{ forloop.counter|add:5 }}00">
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="img-fluid rounded" style="width: 100%; height: 200px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="fas fa-calendar-alt fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                            <div class="text-center mt-3">
+                                <h5 class="mb-0">{{ event.start_date|date:"M d" }}</h5>
+                                <small class="text-muted">{{ event.start_date|date:"Y" }}</small>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">{{ event.title }}</h5>
+                                <span class="badge {% if event.is_past %}bg-secondary{% elif event.is_active %}bg-success{% else %}bg-primary{% endif %}">
+                                    {% if event.is_past %}Past{% elif event.is_active %}Active{% else %}Upcoming{% endif %}
+                                </span>
+                            </div>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-map-marker-alt me-2"></i>{{ event.location }}
+                            </p>
+                            <p class="card-text mb-3">{{ event.description|truncatechars:200 }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-light text-dark me-2">
+                                        <i class="fas fa-clock me-1 text-primary"></i>
+                                        {{ event.start_date|date:"g:i A" }} - {{ event.end_date|date:"g:i A" }}
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-user-tag me-1 text-primary"></i>
+                                        {{ event.registration.attendee_type.name|default:"Standard" }}
+                                    </span>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                    <a href="{% url 'event_pdf' event.event_id %}?from=recent_events" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-file-pdf me-1"></i>Download PDF
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="shareEvent('{{ event.event_id }}')">
+                                                <i class="fas fa-share-alt me-2"></i>Share Event
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onclick="updateNotificationPreferences('{{ event.event_id }}')">
+                                                <i class="fas fa-bell me-2"></i>Notification Settings
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>You haven't registered for any events yet.
+                <a href="{% url 'browse_events' %}" class="alert-link ms-2">Browse available events</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if events.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if events.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ events.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in events.paginator.page_range %}
+            <li class="page-item {% if events.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if events.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ events.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply animation delays from data attributes
+    document.querySelectorAll('[data-animation-delay]').forEach(element => {
+        element.style.animationDelay = element.dataset.animationDelay + 'ms';
+    });
+
+    // Initialize select2 for better dropdown UX
+    $('#category').select2({
+        theme: 'bootstrap-5',
+        width: '100%'
+    });
+
+    // Share event function
+    window.shareEvent = function(eventId) {
+        // Implement share event functionality
+        alert('Share functionality coming soon!');
+    };
+
+    // Update notification preferences function
+    window.updateNotificationPreferences = function(eventId) {
+        // Implement notification preferences update functionality
+        alert('Notification preferences update coming soon!');
+    };
+});
+</script>
+{% endblock %}
+
+

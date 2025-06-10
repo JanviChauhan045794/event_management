@@ -1,0 +1,1401 @@
+{% extends 'dashboard_new_base.html' %}
+{% load static %}
+
+{% block title %}Manage Sponsors - CorpEventX{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                <h2 class="mb-1">Sponsor Management</h2>
+                <p class="text-muted mb-0">Manage sponsor tiers, profiles, and event sponsorships.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2 animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                {% if new_structure %}
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createTierModal">
+                    <i class="fas fa-layer-group me-2"></i>Create Tier
+                </button>
+                <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#createProfileModal">
+                    <i class="fas fa-building me-2"></i>Add Company
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSponsorModal">
+                    <i class="fas fa-handshake me-2"></i>Add Sponsor
+                </button>
+                {% else %}
+                {% if new_structure and not sponsor_tiers %}
+                <div class="alert alert-warning mb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Enhanced sponsor management is enabled but no tiers exist. Create default tiers to get started.
+                    </div>
+                    <a href="{% url 'setup_enhanced_sponsors' %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-magic me-1"></i>Setup Enhanced Sponsors
+                    </a>
+                </div>
+                {% elif not new_structure %}
+                <div class="alert alert-info mb-0 d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-info-circle me-2"></i>
+                        Enhanced sponsor management is available. Run migrations to enable advanced features.
+                    </div>
+                    <div class="btn-group">
+                        <a href="{% url 'setup_enhanced_sponsors' %}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-rocket me-1"></i>Setup Now
+                        </a>
+                        <button class="btn btn-sm btn-outline-primary" onclick="showMigrationInstructions()">
+                            <i class="fas fa-info me-1"></i>Manual Setup
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.2s">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card border-0 bg-primary bg-opacity-10 h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon-circle bg-primary text-white mb-3 mx-auto">
+                    <i class="fas fa-handshake fa-lg"></i>
+                </div>
+                <h3 class="mb-1 counter">{{ total_sponsors }}</h3>
+                <p class="text-muted mb-0">Total Sponsors</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card border-0 bg-success bg-opacity-10 h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon-circle bg-success text-white mb-3 mx-auto">
+                    <i class="fas fa-dollar-sign fa-lg"></i>
+                </div>
+                <h3 class="mb-1 counter">${{ total_revenue|floatformat:0 }}</h3>
+                <p class="text-muted mb-0">Total Revenue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card border-0 bg-info bg-opacity-10 h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon-circle bg-info text-white mb-3 mx-auto">
+                    <i class="fas fa-building fa-lg"></i>
+                </div>
+                <h3 class="mb-1 counter">{{ total_profiles }}</h3>
+                <p class="text-muted mb-0">Company Profiles</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card border-0 bg-warning bg-opacity-10 h-100">
+            <div class="card-body text-center py-4">
+                <div class="stat-icon-circle bg-warning text-white mb-3 mx-auto">
+                    <i class="fas fa-layer-group fa-lg"></i>
+                </div>
+                <h3 class="mb-1 counter">{{ total_tiers }}</h3>
+                <p class="text-muted mb-0">Sponsor Tiers</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sponsor Tiers -->
+{% if new_structure %}
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+    <div class="card-header bg-gradient-primary text-white py-3">
+        <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Sponsor Tiers</h5>
+    </div>
+    <div class="card-body">
+        {% if sponsor_tiers %}
+        <div class="row">
+            {% for tier in sponsor_tiers %}
+            <div class="col-md-4 mb-3">
+                <div class="card border-0 h-100" style="border-left: 4px solid {{ tier.color_code }} !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold" style="color: {{ tier.color_code }}">{{ tier.name }}</h6>
+                            <span class="badge bg-light text-dark">₹{{ tier.base_price|floatformat:0 }}</span>
+                        </div>
+                        <div class="small text-muted mb-2">
+                            {% if tier.logo_placement %}<i class="fas fa-check text-success me-1"></i>{{ tier.logo_placement|truncatechars:50 }}<br>{% endif %}
+                            {% if tier.booth_space %}<i class="fas fa-check text-success me-1"></i>{{ tier.booth_space|truncatechars:50 }}<br>{% endif %}
+                            {% if tier.speaking_opportunities %}<i class="fas fa-check text-success me-1"></i>Speaking Opportunities<br>{% endif %}
+                            {% if tier.networking_access %}<i class="fas fa-check text-success me-1"></i>Networking Access<br>{% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">0 sponsors</small>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editTier('{{ tier.tier_id }}', '{{ tier.name }}', '{{ tier.display_order }}', '{{ tier.color_code }}', '{{ tier.base_price }}', '{{ tier.logo_placement }}', '{{ tier.booth_space }}', {{ tier.speaking_opportunities }}, {{ tier.networking_access }}, {{ tier.marketing_materials }}, '{{ tier.social_media_mentions }}', '{{ tier.email_mentions }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteTier('{{ tier.tier_id }}', '{{ tier.name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-layer-group fa-3x text-muted mb-3"></i>
+            <h5>No Sponsor Tiers</h5>
+            <p class="text-muted">Create sponsor tiers to organize your sponsorship packages.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTierModal">
+                <i class="fas fa-plus me-2"></i>Create First Tier
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Company Profiles -->
+{% if new_structure %}
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.35s">
+    <div class="card-header bg-gradient-info text-white py-3">
+        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Company Profiles</h5>
+    </div>
+    <div class="card-body">
+        {% if sponsor_profiles %}
+        <div class="row">
+            {% for profile in sponsor_profiles %}
+            <div class="col-md-6 mb-3">
+                <div class="card border-0 h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0 fw-bold">{{ profile.company_name }}</h6>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" onclick="editProfile('{{ profile.profile_id }}', '{{ profile.company_name }}', '{{ profile.company_description }}', '{{ profile.website }}', '{{ profile.industry }}', '{{ profile.company_size }}', '{{ profile.primary_contact_name }}', '{{ profile.primary_contact_email }}', '{{ profile.primary_contact_phone }}', '{{ profile.primary_contact_title }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteProfile('{{ profile.profile_id }}', '{{ profile.company_name }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% if profile.industry %}
+                        <p class="text-muted small mb-2"><i class="fas fa-industry me-1"></i>{{ profile.industry }}</p>
+                        {% endif %}
+                        {% if profile.website %}
+                        <p class="text-muted small mb-2"><i class="fas fa-globe me-1"></i><a href="{{ profile.website }}" target="_blank">{{ profile.website|truncatechars:30 }}</a></p>
+                        {% endif %}
+                        <div class="small text-muted">
+                            <i class="fas fa-user me-1"></i>{{ profile.primary_contact_name }}
+                            {% if profile.primary_contact_email %}
+                            <br><i class="fas fa-envelope me-1"></i>{{ profile.primary_contact_email }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+            <h5>No Company Profiles</h5>
+            <p class="text-muted">Create company profiles to manage sponsor information efficiently.</p>
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#createProfileModal">
+                <i class="fas fa-plus me-2"></i>Create First Profile
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Current Sponsors -->
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.4s">
+    <div class="card-header bg-gradient-secondary text-white py-3">
+        <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Event Sponsors</h5>
+    </div>
+    
+    <!-- Filters Section -->
+    <div class="card-body border-bottom">
+        <form id="sponsorFilterForm" class="row g-3">
+            <!-- Search -->
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="sponsorSearch" class="form-control border-0 bg-light" placeholder="Search sponsors...">
+                </div>
+            </div>
+
+            <!-- Event Filter -->
+            <div class="col-md-4">
+                <select class="form-select bg-light border-0" id="eventFilter">
+                    <option value="">All Events</option>
+                    {% for event in events %}
+                        <option value="{{ event.event_id }}">{{ event.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tier Filter -->
+            <div class="col-md-4">
+                <select class="form-select bg-light border-0" id="tierFilter">
+                    <option value="">All Tiers</option>
+                    {% for tier in sponsor_tiers %}
+                        <option value="{{ tier.tier_id }}">{{ tier.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-md-3">
+                <select class="form-select bg-light border-0" id="statusFilter">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+
+            <!-- Industry Filter -->
+            <div class="col-md-3">
+                <select class="form-select bg-light border-0" id="industryFilter">
+                    <option value="">All Industries</option>
+                    <option value="technology">Technology</option>
+                    <option value="finance">Finance</option>
+                    <option value="healthcare">Healthcare</option>
+                    <option value="education">Education</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <!-- Amount Range -->
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">₹</span>
+                    <input type="number" class="form-control bg-light border-0" id="minAmount" placeholder="Min Amount">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-0">₹</span>
+                    <input type="number" class="form-control bg-light border-0" id="maxAmount" placeholder="Max Amount">
+                </div>
+            </div>
+
+            <!-- Filter Actions -->
+            <div class="col-12">
+                <div class="d-flex gap-2 justify-content-end">
+                    <button type="reset" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear Filters
+                    </button>
+                    <button type="button" id="refreshSponsors" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="exportSponsors()">
+                        <i class="fas fa-file-export me-1"></i>Export
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body p-0">
+        {% if sponsors %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Company</th>
+                        <th>Event</th>
+                        <th>Tier</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sponsor in sponsors %}
+                    <tr class="sponsor-row"
+                        data-event-id="{% if new_structure %}{{ sponsor.event_id }}{% else %}{{ sponsor.event.event_id }}{% endif %}"
+                        data-tier-id="{% if new_structure %}{{ sponsor.tier_id }}{% else %}{{ sponsor.tier }}{% endif %}"
+                        data-status="{{ sponsor.status|default:'active' }}"
+                        data-industry="{% if new_structure %}{{ sponsor.industry|default:'other' }}{% else %}other{% endif %}"
+                        data-amount="{% if new_structure %}{{ sponsor.sponsorship_amount|default:0 }}{% else %}0{% endif %}">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-building text-muted"></i>
+                                </div>
+                                <div>
+                                    {% if new_structure %}
+                                    <h6 class="mb-0">{{ sponsor.company_name }}</h6>
+                                    <small class="text-muted">{{ sponsor.industry|default:"" }}</small>
+                                    {% else %}
+                                    <h6 class="mb-0">{{ sponsor.name|default:"Unknown Company" }}</h6>
+                                    <small class="text-muted">ID: {{ sponsor.sponsor_id|truncatechars:8 }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if new_structure %}
+                            <span class="badge bg-primary rounded-pill">{{ sponsor.event_title }}</span>
+                            {% else %}
+                            <span class="badge bg-primary rounded-pill">{{ sponsor.event.title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if new_structure %}
+                            <span class="badge rounded-pill" style="background-color: {{ sponsor.tier_color }}; color: white;">
+                                {{ sponsor.tier_name }}
+                            </span>
+                            {% else %}
+                            {% if sponsor.tier == 'gold' %}
+                            <span class="badge bg-warning text-dark rounded-pill">Gold</span>
+                            {% elif sponsor.tier == 'silver' %}
+                            <span class="badge bg-secondary rounded-pill">Silver</span>
+                            {% else %}
+                            <span class="badge bg-danger rounded-pill">Bronze</span>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if new_structure and sponsor.sponsorship_amount %}
+                            <strong>₹{{ sponsor.sponsorship_amount|floatformat:0 }}</strong>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if new_structure %}
+                            {% if sponsor.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                            {% elif sponsor.status == 'confirmed' %}
+                            <span class="badge bg-info">Confirmed</span>
+                            {% elif sponsor.status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ sponsor.status|title }}</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="badge bg-info">Active</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group">
+                                {% if new_structure %}
+                                <button class="btn btn-sm btn-outline-primary" onclick="editSponsor('{{ sponsor.sponsor_id }}', '{{ sponsor.event_id }}', '{{ sponsor.sponsor_profile_id }}', '{{ sponsor.tier_id }}', '{{ sponsor.sponsorship_amount }}', '{{ sponsor.status }}', {{ sponsor.contract_signed }}, {{ sponsor.payment_received }})" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeSponsor('{{ sponsor.sponsor_id }}', '{% if new_structure %}{{ sponsor.event_title }}{% else %}{{ sponsor.event.title }}{% endif %}')" title="Remove">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-handshake fa-4x text-muted mb-4"></i>
+            <h4 class="mb-3">No Sponsors Yet</h4>
+            <p class="text-muted mb-4">Start by adding sponsor profiles and then assign them to your events.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSponsorModal">
+                <i class="fas fa-plus me-2"></i>Add First Sponsor
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if new_structure %}
+<!-- Edit Sponsor Tier Modal -->
+<div class="modal fade" id="editTierModal" tabindex="-1" aria-labelledby="editTierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editTierModalLabel">Edit Sponsor Tier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="editTierForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_sponsor_tier">
+                <input type="hidden" name="tier_id" id="edit_tier_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_name" class="form-label">Tier Name</label>
+                            <input type="text" class="form-control" name="name" id="edit_name" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="edit_display_order" class="form-label">Display Order</label>
+                            <input type="number" class="form-control" name="display_order" id="edit_display_order">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="edit_color_code" class="form-label">Color</label>
+                            <input type="color" class="form-control" name="color_code" id="edit_color_code">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_base_price" class="form-label">Base Price</label>
+                            <input type="number" class="form-control" name="base_price" id="edit_base_price" step="0.01">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_logo_placement" class="form-label">Logo Placement</label>
+                            <input type="text" class="form-control" name="logo_placement" id="edit_logo_placement">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_booth_space" class="form-label">Booth Space</label>
+                        <input type="text" class="form-control" name="booth_space" id="edit_booth_space">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="speaking_opportunities" id="edit_speaking_opportunities">
+                                <label class="form-check-label" for="edit_speaking_opportunities">
+                                    Speaking Opportunities
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="networking_access" id="edit_networking_access">
+                                <label class="form-check-label" for="edit_networking_access">
+                                    Networking Access
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="marketing_materials" id="edit_marketing_materials">
+                                <label class="form-check-label" for="edit_marketing_materials">
+                                    Marketing Materials
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_social_media_mentions" class="form-label">Social Media Mentions</label>
+                            <input type="number" class="form-control" name="social_media_mentions" id="edit_social_media_mentions">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_email_mentions" class="form-label">Email Newsletter Mentions</label>
+                            <input type="number" class="form-control" name="email_mentions" id="edit_email_mentions">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Update Tier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Sponsor Tier Modal -->
+<div class="modal fade" id="deleteTierModal" tabindex="-1" aria-labelledby="deleteTierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteTierModalLabel">Delete Sponsor Tier</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="deleteTierForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_sponsor_tier">
+                <input type="hidden" name="tier_id" id="delete_tier_id">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    <p>Are you sure you want to delete the sponsor tier "<span id="delete_tier_name"></span>"?</p>
+                    <p class="text-muted small">Note: You cannot delete a tier that is currently being used by sponsors.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Tier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Sponsor Tier Modal -->
+<div class="modal fade" id="createTierModal" tabindex="-1" aria-labelledby="createTierModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="createTierModalLabel">Create Sponsor Tier</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_sponsor_tier">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Tier Name</label>
+                            <input type="text" class="form-control" name="name" placeholder="e.g., Platinum, Gold, Silver" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="display_order" class="form-label">Display Order</label>
+                            <input type="number" class="form-control" name="display_order" placeholder="1" value="1">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="color_code" class="form-label">Color</label>
+                            <input type="color" class="form-control" name="color_code" value="#000000">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="base_price" class="form-label">Base Price</label>
+                            <input type="number" class="form-control" name="base_price" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="logo_placement" class="form-label">Logo Placement</label>
+                            <input type="text" class="form-control" name="logo_placement" placeholder="e.g., Main stage backdrop, Website header">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="booth_space" class="form-label">Booth Space</label>
+                        <input type="text" class="form-control" name="booth_space" placeholder="e.g., 10x10 booth, Premium location">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="speaking_opportunities" id="speaking_opportunities">
+                                <label class="form-check-label" for="speaking_opportunities">
+                                    Speaking Opportunities
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="networking_access" id="networking_access">
+                                <label class="form-check-label" for="networking_access">
+                                    Networking Access
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="social_media_mentions" class="form-label">Social Media Mentions</label>
+                            <input type="number" class="form-control" name="social_media_mentions" placeholder="0" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email_mentions" class="form-label">Email Newsletter Mentions</label>
+                            <input type="number" class="form-control" name="email_mentions" placeholder="0" value="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Tier</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Sponsor Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Company Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_sponsor_profile">
+                <input type="hidden" name="profile_id" id="edit_profile_id">
+                <div class="modal-body">
+                    <!-- Company Information -->
+                    <h6 class="mb-3">Company Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_company_name" class="form-label">Company Name *</label>
+                            <input type="text" class="form-control" name="company_name" id="edit_company_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_website" class="form-label">Website</label>
+                            <input type="url" class="form-control" name="website" id="edit_website">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_industry" class="form-label">Industry</label>
+                            <input type="text" class="form-control" name="industry" id="edit_industry">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_company_size" class="form-label">Company Size</label>
+                            <select class="form-control" name="company_size" id="edit_company_size">
+                                <option value="">Select company size</option>
+                                <option value="1-10">1-10 employees</option>
+                                <option value="11-50">11-50 employees</option>
+                                <option value="51-200">51-200 employees</option>
+                                <option value="201-500">201-500 employees</option>
+                                <option value="501-1000">501-1000 employees</option>
+                                <option value="1000+">1000+ employees</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_company_description" class="form-label">Description</label>
+                        <textarea class="form-control" name="company_description" id="edit_company_description" rows="4"></textarea>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h6 class="mb-3 mt-4">Primary Contact</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_primary_contact_name" class="form-label">Contact Name *</label>
+                            <input type="text" class="form-control" name="primary_contact_name" id="edit_primary_contact_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_primary_contact_email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" name="primary_contact_email" id="edit_primary_contact_email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_primary_contact_phone" class="form-label">Phone</label>
+                            <input type="text" class="form-control" name="primary_contact_phone" id="edit_primary_contact_phone">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_primary_contact_title" class="form-label">Job Title</label>
+                            <input type="text" class="form-control" name="primary_contact_title" id="edit_primary_contact_title">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Update Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Sponsor Profile Modal -->
+<div class="modal fade" id="deleteProfileModal" tabindex="-1" aria-labelledby="deleteProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteProfileModalLabel">Delete Company Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" id="deleteProfileForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete_sponsor_profile">
+                <input type="hidden" name="profile_id" id="delete_profile_id">
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    <p>Are you sure you want to delete the company profile "<span id="delete_profile_name"></span>"?</p>
+                    <p class="text-muted small">Note: You cannot delete a profile that is currently being used by sponsors.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Delete Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Create Sponsor Profile Modal -->
+<div class="modal fade" id="createProfileModal" tabindex="-1" aria-labelledby="createProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="createProfileModalLabel">Add Company Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" id="createProfileForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_sponsor_profile">
+                <div class="modal-body">
+                    <!-- Company Information -->
+                    <h6 class="mb-3">Company Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="company_name" class="form-label">Company Name *</label>
+                            <input type="text" class="form-control" name="company_name" id="company_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="website" class="form-label">Website</label>
+                            <input type="url" class="form-control" name="website" id="website" placeholder="https://www.company.com">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="industry" class="form-label">Industry</label>
+                            <input type="text" class="form-control" name="industry" id="industry" placeholder="e.g., Technology, Healthcare">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="company_size" class="form-label">Company Size</label>
+                            <select class="form-control" name="company_size" id="company_size">
+                                <option value="">Select company size</option>
+                                <option value="1-10">1-10 employees</option>
+                                <option value="11-50">11-50 employees</option>
+                                <option value="51-200">51-200 employees</option>
+                                <option value="201-500">201-500 employees</option>
+                                <option value="501-1000">501-1000 employees</option>
+                                <option value="1000+">1000+ employees</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="company_description" class="form-label">Company Description</label>
+                        <textarea class="form-control" name="company_description" id="company_description" rows="3"></textarea>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h6 class="mb-3 mt-4">Contact Information</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="primary_contact_name" class="form-label">Primary Contact Name *</label>
+                            <input type="text" class="form-control" name="primary_contact_name" id="primary_contact_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="primary_contact_email" class="form-label">Primary Contact Email *</label>
+                            <input type="email" class="form-control" name="primary_contact_email" id="primary_contact_email" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="primary_contact_phone" class="form-label">Primary Contact Phone</label>
+                            <input type="tel" class="form-control" name="primary_contact_phone" id="primary_contact_phone">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="primary_contact_title" class="form-label">Primary Contact Title</label>
+                            <input type="text" class="form-control" name="primary_contact_title" id="primary_contact_title">
+                        </div>
+                    </div>
+
+                    <!-- Media Assets -->
+                    <h6 class="mb-3 mt-4">Media Assets</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="logo" class="form-label">Company Logo</label>
+                            <input type="file" class="form-control" name="logo" id="logo" accept="image/*">
+                            <small class="text-muted">Recommended size: 200x200px</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="banner_image" class="form-label">Banner Image</label>
+                            <input type="file" class="form-control" name="banner_image" id="banner_image" accept="image/*">
+                            <small class="text-muted">Recommended size: 1200x300px</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="marketing_materials" class="form-label">Marketing Materials</label>
+                        <input type="file" class="form-control" name="marketing_materials" id="marketing_materials">
+                        <small class="text-muted">Upload brochures, presentations, etc. (PDF, PPTX, DOC)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-info">Create Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Event Sponsor Modal -->
+<div class="modal fade" id="editSponsorModal" tabindex="-1" aria-labelledby="editSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editSponsorModalLabel">Edit Event Sponsor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="edit_event_sponsor">
+                <input type="hidden" name="sponsor_id" id="edit_sponsor_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_sponsor_profile_id" class="form-label">Company *</label>
+                            <select class="form-control" name="profile_id" id="edit_sponsor_profile_id" required>
+                                <option value="">Select a company</option>
+                                {% for profile in sponsor_profiles %}
+                                <option value="{{ profile.profile_id }}">{{ profile.company_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_sponsor_tier_id" class="form-label">Sponsorship Tier *</label>
+                            <select class="form-control" name="tier_id" id="edit_sponsor_tier_id" required onchange="updateEditSponsorshipAmount()">
+                                <option value="">Select a tier</option>
+                                {% for tier in sponsor_tiers %}
+                                <option value="{{ tier.tier_id }}" data-price="{{ tier.base_price }}">{{ tier.name }} - ₹{{ tier.base_price|floatformat:0 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_sponsor_amount" class="form-label">Sponsorship Amount</label>
+                            <input type="number" class="form-control" name="sponsorship_amount" id="edit_sponsor_amount" step="0.01" placeholder="0.00">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_sponsor_status" class="form-label">Status</label>
+                            <select class="form-control" name="status" id="edit_sponsor_status">
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="contract_signed" id="edit_sponsor_contract_signed">
+                                <label class="form-check-label" for="edit_sponsor_contract_signed">
+                                    Contract Signed
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="payment_received" id="edit_sponsor_payment_received">
+                                <label class="form-check-label" for="edit_sponsor_payment_received">
+                                    Payment Received
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">Update Sponsor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Sponsor Modal -->
+<div class="modal fade" id="addSponsorModal" tabindex="-1" aria-labelledby="addSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="addSponsorModalLabel">Add Event Sponsor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_event_sponsor">
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> You can only add companies that have existing profiles and sponsor tiers that have been created.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="event_id" class="form-label">Event *</label>
+                            <select class="form-control" name="event_id" id="add_event_id" required>
+                                <option value="">Select an event</option>
+                                {% for event in events %}
+                                <option value="{{ event.event_id }}">{{ event.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="profile_id" class="form-label">Company *</label>
+                            <select class="form-control" name="profile_id" id="add_profile_id" required>
+                                <option value="">Select a company</option>
+                                {% for profile in sponsor_profiles %}
+                                <option value="{{ profile.profile_id }}">{{ profile.company_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="tier_id" class="form-label">Sponsorship Tier *</label>
+                            <select class="form-control" name="tier_id" id="add_tier_id" required onchange="updateSponsorshipAmount()">
+                                <option value="">Select a tier</option>
+                                {% for tier in sponsor_tiers %}
+                                <option value="{{ tier.tier_id }}" data-price="{{ tier.base_price }}">{{ tier.name }} - ₹{{ tier.base_price|floatformat:0 }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sponsorship_amount" class="form-label">Sponsorship Amount</label>
+                            <input type="number" class="form-control" name="sponsorship_amount" id="add_sponsorship_amount" step="0.01" placeholder="0.00">
+                            <small class="text-muted">Leave blank to use tier base price</small>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-control" name="status" id="add_status">
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="active">Active</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="mt-4">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="contract_signed" id="add_contract_signed">
+                                    <label class="form-check-label" for="add_contract_signed">
+                                        Contract Signed
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="payment_received" id="add_payment_received">
+                                    <label class="form-check-label" for="add_payment_received">
+                                        Payment Received
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if not sponsor_profiles %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>No company profiles available.</strong> Please create company profiles first.
+                        <button type="button" class="btn btn-sm btn-warning ms-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#createProfileModal">
+                            Create Company Profile
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    {% if not sponsor_tiers %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>No sponsor tiers available.</strong> Please create sponsor tiers first.
+                        <button type="button" class="btn btn-sm btn-warning ms-2" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#createTierModal">
+                            Create Sponsor Tier
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success" {% if not sponsor_profiles or not sponsor_tiers %}disabled{% endif %}>Add Sponsor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+<!-- Migration Instructions Modal -->
+<div class="modal fade" id="migrationInstructionsModal" tabindex="-1" aria-labelledby="migrationInstructionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="migrationInstructionsModalLabel">
+                    <i class="fas fa-rocket me-2"></i>Enable Enhanced Sponsor Management
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Follow these steps to enable the enhanced sponsor management system with tiers, profiles, and advanced tracking.
+                </div>
+
+                <h6 class="mb-3">Step 1: Create Database Migrations</h6>
+                <div class="bg-dark text-light p-3 rounded mb-3">
+                    <code>python manage.py makemigrations events</code>
+                </div>
+
+                <h6 class="mb-3">Step 2: Apply Migrations</h6>
+                <div class="bg-dark text-light p-3 rounded mb-3">
+                    <code>python manage.py migrate</code>
+                </div>
+
+                <h6 class="mb-3">Step 3: Set Up Default Sponsor Tiers</h6>
+                <div class="bg-dark text-light p-3 rounded mb-3">
+                    <code>python manage.py setup_enhanced_sponsors</code>
+                </div>
+
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    After completing these steps, refresh this page to access the enhanced sponsor management features!
+                </div>
+
+                <h6 class="mb-3">What You'll Get:</h6>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success me-2"></i>Customizable sponsor tiers (Platinum, Gold, Silver, Bronze, Community)</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Detailed company profiles with contact information</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Revenue tracking and contract management</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Logo uploads and marketing materials</li>
+                    <li><i class="fas fa-check text-success me-2"></i>Benefit packages and tier-based features</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyCommands()">
+                    <i class="fas fa-copy me-1"></i>Copy Commands
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showMigrationInstructions() {
+    const modal = new bootstrap.Modal(document.getElementById('migrationInstructionsModal'));
+    modal.show();
+}
+
+function copyCommands() {
+    const commands = `python manage.py makemigrations events
+python manage.py migrate
+python manage.py setup_enhanced_sponsors`;
+
+    navigator.clipboard.writeText(commands).then(function() {
+        // Show success message
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }, 2000);
+    });
+}
+
+function editTier(tierId, name, displayOrder, colorCode, basePrice, logoPlacement, boothSpace, speakingOpportunities, networkingAccess, marketingMaterials, socialMediaMentions, emailMentions) {
+    // Populate the edit form
+    document.getElementById('edit_tier_id').value = tierId;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_display_order').value = displayOrder;
+    document.getElementById('edit_color_code').value = colorCode;
+    document.getElementById('edit_base_price').value = basePrice;
+    document.getElementById('edit_logo_placement').value = logoPlacement;
+    document.getElementById('edit_booth_space').value = boothSpace;
+    document.getElementById('edit_speaking_opportunities').checked = speakingOpportunities;
+    document.getElementById('edit_networking_access').checked = networkingAccess;
+    document.getElementById('edit_marketing_materials').checked = marketingMaterials;
+    document.getElementById('edit_social_media_mentions').value = socialMediaMentions;
+    document.getElementById('edit_email_mentions').value = emailMentions;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('editTierModal'));
+    modal.show();
+}
+
+function deleteTier(tierId, tierName) {
+    // Populate the delete form
+    document.getElementById('delete_tier_id').value = tierId;
+    document.getElementById('delete_tier_name').textContent = tierName;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteTierModal'));
+    modal.show();
+}
+
+function editProfile(profileId, companyName, companyDescription, website, industry, companySize, primaryContactName, primaryContactEmail, primaryContactPhone, primaryContactTitle) {
+    // Populate the edit form
+    document.getElementById('edit_profile_id').value = profileId;
+    document.getElementById('edit_company_name').value = companyName;
+    document.getElementById('edit_company_description').value = companyDescription;
+    document.getElementById('edit_website').value = website;
+    document.getElementById('edit_industry').value = industry;
+    document.getElementById('edit_company_size').value = companySize;
+    document.getElementById('edit_primary_contact_name').value = primaryContactName;
+    document.getElementById('edit_primary_contact_email').value = primaryContactEmail;
+    document.getElementById('edit_primary_contact_phone').value = primaryContactPhone;
+    document.getElementById('edit_primary_contact_title').value = primaryContactTitle;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+    modal.show();
+}
+
+function deleteProfile(profileId, companyName) {
+    // Populate the delete form
+    document.getElementById('delete_profile_id').value = profileId;
+    document.getElementById('delete_profile_name').textContent = companyName;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('deleteProfileModal'));
+    modal.show();
+}
+
+function updateSponsorshipAmount() {
+    const tierSelect = document.getElementById('add_tier_id');
+    const amountInput = document.getElementById('add_sponsorship_amount');
+
+    if (tierSelect.selectedIndex > 0) {
+        const selectedOption = tierSelect.options[tierSelect.selectedIndex];
+        const basePrice = selectedOption.getAttribute('data-price');
+        amountInput.value = basePrice;
+    } else {
+        amountInput.value = '';
+    }
+}
+
+function updateEditSponsorshipAmount() {
+    const tierSelect = document.getElementById('edit_sponsor_tier_id');
+    const amountInput = document.getElementById('edit_sponsor_amount');
+
+    if (tierSelect.selectedIndex > 0) {
+        const selectedOption = tierSelect.options[tierSelect.selectedIndex];
+        const basePrice = selectedOption.getAttribute('data-price');
+        amountInput.value = basePrice;
+    }
+}
+
+function editSponsor(sponsorId, eventId, profileId, tierId, amount, status, contractSigned, paymentReceived) {
+    // Populate the edit form
+    document.getElementById('edit_sponsor_id').value = sponsorId;
+    document.getElementById('edit_sponsor_profile_id').value = profileId;
+    document.getElementById('edit_sponsor_tier_id').value = tierId;
+    document.getElementById('edit_sponsor_amount').value = amount;
+    document.getElementById('edit_sponsor_status').value = status;
+    document.getElementById('edit_sponsor_contract_signed').checked = contractSigned == 1;
+    document.getElementById('edit_sponsor_payment_received').checked = paymentReceived == 1;
+
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('editSponsorModal'));
+    modal.show();
+}
+
+function removeSponsor(sponsorId, eventTitle) {
+    if (confirm(`Are you sure you want to remove this sponsor from "${eventTitle}"?`)) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.style.display = 'none';
+
+        // Add CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        // Add action
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'remove_event_sponsor';
+        form.appendChild(actionInput);
+
+        // Add sponsor ID
+        const sponsorInput = document.createElement('input');
+        sponsorInput.type = 'hidden';
+        sponsorInput.name = 'sponsor_id';
+        sponsorInput.value = sponsorId;
+        form.appendChild(sponsorInput);
+
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const createProfileForm = document.getElementById('createProfileForm');
+    if (createProfileForm) {
+        createProfileForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic validation
+            const requiredFields = ['company_name', 'primary_contact_name', 'primary_contact_email'];
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            // Email validation
+            const emailInput = document.getElementById('primary_contact_email');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(emailInput.value.trim())) {
+                isValid = false;
+                emailInput.classList.add('is-invalid');
+            }
+
+            // Website validation (if provided)
+            const websiteInput = document.getElementById('website');
+            if (websiteInput.value.trim()) {
+                try {
+                    new URL(websiteInput.value);
+                    websiteInput.classList.remove('is-invalid');
+                } catch (e) {
+                    isValid = false;
+                    websiteInput.classList.add('is-invalid');
+                }
+            }
+
+            // File size validation
+            const maxFileSize = 5 * 1024 * 1024; // 5MB
+            const fileInputs = ['logo', 'banner_image', 'marketing_materials'];
+            
+            fileInputs.forEach(fileId => {
+                const fileInput = document.getElementById(fileId);
+                if (fileInput.files.length > 0) {
+                    if (fileInput.files[0].size > maxFileSize) {
+                        isValid = false;
+                        fileInput.classList.add('is-invalid');
+                        alert(`${fileId.replace('_', ' ').toUpperCase()} file size must be less than 5MB`);
+                    } else {
+                        fileInput.classList.remove('is-invalid');
+                    }
+                }
+            });
+
+            if (isValid) {
+                this.submit();
+            }
+        });
+    }
+
+    // Add sponsor form validation
+    const addSponsorForm = document.getElementById('addSponsorForm');
+    if (addSponsorForm) {
+        addSponsorForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            
+            // Required fields validation
+            const requiredFields = ['event_id', 'profile_id', 'tier_id', 'sponsorship_amount'];
+            requiredFields.forEach(field => {
+                const input = document.getElementById('add_' + field);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            // Amount validation
+            const amountInput = document.getElementById('add_sponsorship_amount');
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount < 0) {
+                isValid = false;
+                amountInput.classList.add('is-invalid');
+            }
+
+            // Date validation
+            const contractDate = document.getElementById('add_contract_date');
+            const paymentDate = document.getElementById('add_payment_date');
+            const today = new Date();
+
+            if (contractDate.value) {
+                const contractDateObj = new Date(contractDate.value);
+                if (contractDateObj > today) {
+                    isValid = false;
+                    contractDate.classList.add('is-invalid');
+                    alert('Contract date cannot be in the future');
+                }
+            }
+
+            if (paymentDate.value) {
+                const paymentDateObj = new Date(paymentDate.value);
+                if (paymentDateObj > today) {
+                    isValid = false;
+                    paymentDate.classList.add('is-invalid');
+                    alert('Payment date cannot be in the future');
+                }
+            }
+
+            // Status validation based on contract and payment
+            const contractSigned = document.getElementById('add_contract_signed').checked;
+            const paymentReceived = document.getElementById('add_payment_received').checked;
+            const status = document.getElementById('add_status').value;
+
+            if (contractSigned && paymentReceived && status === 'pending') {
+                isValid = false;
+                document.getElementById('add_status').classList.add('is-invalid');
+                alert('Status should be "active" when contract is signed and payment is received');
+            }
+
+            if (!contractSigned && status === 'active') {
+                isValid = false;
+                document.getElementById('add_status').classList.add('is-invalid');
+                alert('Contract must be signed to set status as "active"');
+            }
+
+            if (isValid) {
+                this.submit();
+            }
+        });
+
+        // Auto-update status based on contract and payment
+        const contractSignedCheckbox = document.getElementById('add_contract_signed');
+        const paymentReceivedCheckbox = document.getElementById('add_payment_received');
+        const statusSelect = document.getElementById('add_status');
+
+        function updateStatus() {
+            if (contractSignedCheckbox.checked && paymentReceivedCheckbox.checked) {
+                statusSelect.value = 'active';
+            } else if (contractSignedCheckbox.checked) {
+                statusSelect.value = 'confirmed';
+            } else {
+                statusSelect.value = 'pending';
+            }
+        }
+
+        contractSignedCheckbox.addEventListener('change', updateStatus);
+        paymentReceivedCheckbox.addEventListener('change', updateStatus);
+    }
+});
+</script>
+
+<script src="{% static 'js/sponsor-management.js' %}"></script>
+
+{% endif %}
+{% endblock %}

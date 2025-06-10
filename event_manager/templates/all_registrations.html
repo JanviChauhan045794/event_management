@@ -1,0 +1,212 @@
+{% extends 'organizer/base.html' %}
+{% load static %}
+
+{% block page_title %}All Registrations{% endblock %}
+{% block title %}All Registrations{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-3">
+    <!-- Header with Stats -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="mb-0">All Registrations</h2>
+                    <p class="text-muted mb-0">Manage and track registrations across all your events.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="exportRegistrationsBtn">
+                        <i class="fas fa-file-export me-1"></i>Export
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" id="refreshDataBtn">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="row g-2">
+                <div class="col-xl-3 col-md-6">
+                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                            <i class="fas fa-users text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="h6 mb-0">{{ total_registrations }}</div>
+                            <small class="text-muted">Total Registrations</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2">
+                            <i class="fas fa-calendar-check text-success"></i>
+                        </div>
+                        <div>
+                            <div class="h6 mb-0">{{ active_events }}</div>
+                            <small class="text-muted">Active Events</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2">
+                            <i class="fas fa-chart-line text-info"></i>
+                        </div>
+                        <div>
+                            <div class="h6 mb-0">{{ registration_rate }}%</div>
+                            <small class="text-muted">Registration Rate</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="d-flex align-items-center p-2 bg-light rounded">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-2">
+                            <i class="fas fa-clock text-warning"></i>
+                        </div>
+                        <div>
+                            <div class="h6 mb-0">{{ pending_registrations }}</div>
+                            <small class="text-muted">Pending Approvals</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Table Combined -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <!-- Filters -->
+            <div class="border-bottom p-3">
+                <form id="filterForm" method="get" action="{% url 'all_registrations' %}" class="row g-2">
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light border-0">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="registrationSearch" class="form-control form-control-sm border-0 bg-light" placeholder="Search registrations...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select form-select-sm bg-light border-0" id="eventFilter" name="event">
+                            <option value="">All Events</option>
+                            {% for event in events %}
+                                <option value="{{ event.event_id }}" {% if event_filter == event.event_id|stringformat:"s" %}selected{% endif %}>
+                                    {{ event.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm bg-light border-0" id="roleFilter" name="role">
+                            <option value="">All Roles</option>
+                            {% for role in roles %}
+                                <option value="{{ role.name }}" {% if role_filter == role.name %}selected{% endif %}>
+                                    {{ role.name|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm bg-light border-0" id="typeFilter" name="type">
+                            <option value="">All Types</option>
+                            {% for type in attendee_types %}
+                                <option value="{{ type.name }}" {% if type_filter == type.name %}selected{% endif %}>
+                                    {{ type.name|title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Table -->
+            {% if registrations %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="registrationsTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-3">Participant</th>
+                            <th>Event</th>
+                            <th>Role</th>
+                            <th>Type</th>
+                            <th>Registered</th>
+                            <th>Notify</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in registrations %}
+                        <tr>
+                            <td class="ps-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2">
+                                        {% if registration.user.profile_picture %}
+                                            <img src="{{ registration.user.profile_picture.url }}" alt="Profile" class="rounded-circle" width="32">
+                                        {% else %}
+                                            <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-primary small"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="mb-0 fw-medium">{{ registration.user.get_full_name }}</div>
+                                        <small class="text-muted">{{ registration.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ registration.event.title }}</td>
+                            <td>
+                                <span class="badge {% if registration.role.name == 'attendee' %}bg-primary{% elif registration.role.name == 'speaker' %}bg-success{% else %}bg-warning{% endif %} rounded-pill">
+                                    {{ registration.role.name|title }}
+                                </span>
+                            </td>
+                            <td>{{ registration.attendee_type.name|title|default:"-" }}</td>
+                            <td>{{ registration.registered_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notification_{{ registration.id }}" {% if registration.notifications_enabled %}checked{% endif %}>
+                                </div>
+                            </td>
+                            <td class="text-end pe-3">
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary btn-sm px-2">
+                                        <i class="fas fa-envelope"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle dropdown-toggle-split px-1" data-bs-toggle="dropdown">
+                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-history me-2"></i>History</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-trash me-2"></i>Delete</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <img src="https://cdn.iconscout.com/icon/free/png-256/free-data-not-found-1965034-1662569.png" alt="No Data" width="64" class="mb-2">
+                <h6 class="text-muted mb-0">No registrations found</h6>
+                <small class="text-muted">Try adjusting your filters or add new registrations.</small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/registrations.js' %}"></script>
+{% endblock %}

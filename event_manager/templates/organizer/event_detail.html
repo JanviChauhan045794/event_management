@@ -1,0 +1,931 @@
+{% extends "organizer/base.html" %}
+{% load static %}
+{% load humanize %}
+{% load event_tags %}
+
+{% block title %}{{ event.title }} - Event Manager{% endblock %}
+
+{% block page_title %}Event Details{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Event Header -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow">
+                <div class="card-body p-0">
+                    {% if event.banner %}
+                        <div class="event-banner" style="height: 280px; background: url('{{ event.banner.url }}') no-repeat center center; background-size: cover; border-radius: 5px 5px 0 0;"></div>
+                    {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 280px; border-radius: 5px 5px 0 0;">
+                            <i class="fas fa-image fa-4x text-muted"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="p-4">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                            <div>
+                                <span class="badge bg-primary me-2 py-2 px-3">{{ event.category.name }}</span>
+                                {% if event.ticket_price > 0 %}
+                                    <span class="badge bg-success me-2 py-2 px-3">₹{{ event.ticket_price }}</span>
+                                {% else %}
+                                    <span class="badge bg-success me-2 py-2 px-3">Free</span>
+                                {% endif %}
+                            </div>
+                            {% if is_organizer %}
+                                <div class="btn-group">
+                                    <a href="{% url 'edit_event' event.event_id %}" class="btn btn-primary">
+                                        <i class="fas fa-edit me-1"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <h1 class="mb-3">{{ event.title }}</h1>
+
+                        <div class="row mb-4">
+                            <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-0 small">Start Date</p>
+                                        <p class="mb-0 fw-bold">{{ event.start_date|date:"M d, Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-calendar-check text-success"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-0 small">End Date</p>
+                                        <p class="mb-0 fw-bold">{{ event.end_date|date:"M d, Y" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3 mb-md-0">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-danger bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-map-marker-alt text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-0 small">Location</p>
+                                        <p class="mb-0 fw-bold">{{ event.location }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="icon-box me-3 bg-info bg-opacity-10 rounded-circle p-3">
+                                        <i class="fas fa-user text-info"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted mb-0 small">Organizer</p>
+                                        <p class="mb-0 fw-bold">{{ event.organizer.get_full_name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Description -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-align-left me-2 text-primary"></i>Description</h5>
+                </div>
+                <div class="card-body">
+                    <div class="event-description">
+                        {{ event.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registrations -->
+            {% if is_organizer %}
+                <div class="card border-0 shadow mb-4">
+                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="fas fa-user-check me-2 text-primary"></i>Registrations</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download me-1"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if registrations %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Type</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for registration in registrations %}
+                                            <tr>
+                                                <td>{{ registration.user.get_full_name }}</td>
+                                                <td>{{ registration.user.email }}</td>
+                                                <td>
+                                                    <span class="badge {% if registration.role.name == 'attendee' %}bg-primary{% elif registration.role.name == 'speaker' %}bg-success{% else %}bg-warning{% endif %}">
+                                                        {{ registration.role.name|title }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ registration.attendee_type.name|title|default:"-" }}</td>
+                                                <td>{{ registration.registered_at|date:"M d, Y" }}</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-envelope"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <img src="https://cdn.iconscout.com/icon/free/png-256/free-data-not-found-1965034-1662569.png" alt="No Data" width="80">
+                                <p class="mt-3 text-muted">No registrations yet.</p>
+                                <button class="btn btn-primary">
+                                    <i class="fas fa-share me-1"></i> Share Event
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Feedback -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-comment-alt me-2 text-primary"></i>Feedback</h5>
+                </div>
+                <div class="card-body">
+                    {% if feedback %}
+                        <div class="list-group list-group-flush">
+                            {% for fb in feedback %}
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1 fw-bold">{{ fb.user.get_full_name }}</h6>
+                                        <small class="text-muted">{{ fb.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <div class="mb-2">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= fb.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <p class="mb-1">{{ fb.comments }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-chat-bubble-3114776-2598188.png" alt="No Feedback" width="80">
+                            <p class="mt-3 text-muted">No feedback yet.</p>
+                            {% if user_registration %}
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                                    <i class="fas fa-star me-1"></i> Leave Feedback
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Event Stats -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-primary"></i>Event Stats</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="card bg-primary bg-opacity-10 border-0">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                    <h2 class="mb-0">{{ attendees_count }}</h2>
+                                    <p class="mb-0 text-muted">Attendees</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-success bg-opacity-10 border-0">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-microphone fa-2x text-success mb-2"></i>
+                                    <h2 class="mb-0">{{ speakers_count }}</h2>
+                                    <p class="mb-0 text-muted">Speakers</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-warning bg-opacity-10 border-0">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-chair fa-2x text-warning mb-2"></i>
+                                    <h2 class="mb-0">{{ event.get_available_seats }}</h2>
+                                    <p class="mb-0 text-muted">Available Seats</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="card bg-info bg-opacity-10 border-0">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-percentage fa-2x text-info mb-2"></i>
+                                    <h2 class="mb-0">
+                                        {% if event.capacity > 0 %}
+                                            {{ attendees_count|multiply:100|div:event.capacity|floatformat:0 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </h2>
+                                    <p class="mb-0 text-muted">Capacity Filled</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-bolt me-2 text-primary"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#shareEventModal">
+                            <i class="fas fa-share-alt me-2"></i> Share Event
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i> Email Attendees
+                        </a>
+                        <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#qrCodeModal">
+                            <i class="fas fa-qrcode me-2"></i> Registration QR Code
+                        </a>
+                        {% if not event.is_published %}
+                            <a href="#" class="btn btn-success">
+                                <i class="fas fa-globe me-2"></i> Publish Event
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Link -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-link me-2 text-primary"></i>Registration Link</h5>
+                </div>
+                <div class="card-body">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" value="{{ event.registration_link }}" id="registrationLink" readonly>
+                        <button class="btn btn-outline-primary copy-link-btn" type="button" data-link="{{ event.registration_link }}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">Share this link with potential attendees to register for the event.</div>
+
+                    <div class="mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableRegistration" {% if event.enable_registration %}checked{% endif %} disabled>
+                            <label class="form-check-label" for="enableRegistration">Registration is {% if event.enable_registration %}enabled{% else %}disabled{% endif %}</label>
+                        </div>
+                        <div class="form-text">
+                            {% if event.enable_registration %}
+                                Users can register for this event.
+                            {% else %}
+                                Registration is currently disabled. <a href="{% url 'edit_event' event.event_id %}">Edit event</a> to enable.
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">Capacity:</span> {{ attendees_count }} / {{ event.capacity }}
+                            </div>
+                            <div>
+                                <span class="badge {% if event.is_full %}bg-danger{% else %}bg-success{% endif %}">
+                                    {% if event.is_full %}Full{% else %}{{ event.get_available_seats }} seats available{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            <div class="progress-bar {% if event.is_full %}bg-danger{% endif %}" role="progressbar"
+                                style="width: {% if event.capacity > 0 %}{{ attendees_count|multiply:100|div:event.capacity|floatformat:0 }}{% else %}0{% endif %}%;"
+                                aria-valuenow="{% if event.capacity > 0 %}{{ attendees_count|multiply:100|div:event.capacity|floatformat:0 }}{% else %}0{% endif %}"
+                                aria-valuemin="0" aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card border-0 shadow mb-4">
+                <div class="card-header bg-white border-0">
+                    <h5 class="card-title mb-0 fw-bold"><i class="fas fa-history me-2 text-primary"></i>Event Timeline</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="timeline">
+                        <li class="timeline-item mb-4">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0 fw-bold">Event Created</h6>
+                                <p class="text-muted small mb-0">{{ event.created_at|date:"M d, Y" }}</p>
+                            </div>
+                        </li>
+                        {% if event.is_published %}
+                        <li class="timeline-item mb-4">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0 fw-bold">Event Published</h6>
+                                <p class="text-muted small mb-0">{{ event.published_at|date:"M d, Y" }}</p>
+                            </div>
+                        </li>
+                        {% endif %}
+                        <li class="timeline-item mb-4">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0 fw-bold">Event Start</h6>
+                                <p class="text-muted small mb-0">{{ event.start_date|date:"M d, Y g:i A" }}</p>
+                            </div>
+                        </li>
+                        <li class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-0 fw-bold">Event End</h6>
+                                <p class="text-muted small mb-0">{{ event.end_date|date:"M d, Y g:i A" }}</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- User Ticket -->
+            {% if user_registration and not is_organizer %}
+                <div class="mt-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3"><i class="fas fa-ticket-alt text-primary me-2"></i>Your Ticket</h5>
+                            {% if user_registration.status != 'cancelled' %}
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <p class="mb-1"><strong>Registration ID:</strong> #{{ user_registration.id }}</p>
+                                        <p class="mb-0 text-muted">{{ user_registration.registered_at|date:"F d, Y" }}</p>
+                                    </div>
+                                    <div class="btn-group">
+                                        <a href="{% url 'event_pdf' event.event_id %}" class="btn btn-primary" target="_blank">
+                                            <i class="fas fa-download me-2"></i>Download E-Ticket
+                                        </a>
+                                        <a href="{% url 'event_pdf' event.event_id %}" class="btn btn-outline-primary" target="_blank">
+                                            <i class="fas fa-eye me-2"></i>Preview
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-3 mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Please download and keep your ticket safe. You'll need to present it at the event entrance.
+                                </div>
+                            {% else %}
+                                <div class="alert alert-danger mb-0">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Your registration has been cancelled. Ticket is no longer available.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Event Modal -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ event.title }}</strong>? This action cannot be undone.</p>
+                <p class="text-danger">All registrations and feedback associated with this event will also be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Leave Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" id="feedbackError"></div>
+                <div class="alert alert-success d-none" id="feedbackSuccess"></div>
+                <form id="feedbackForm" action="{% url 'submit_feedback' event.event_id %}" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3 text-center">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars">
+                            <i class="far fa-star fs-3 text-muted rating-star" data-rating="1"></i>
+                            <i class="far fa-star fs-3 text-muted rating-star" data-rating="2"></i>
+                            <i class="far fa-star fs-3 text-muted rating-star" data-rating="3"></i>
+                            <i class="far fa-star fs-3 text-muted rating-star" data-rating="4"></i>
+                            <i class="far fa-star fs-3 text-muted rating-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-value" value="0" required>
+                        <div class="rating-text text-muted mt-2"></div>
+                        <div class="invalid-feedback">Please select a rating</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">Comments</label>
+                        <textarea class="form-control" id="comments" name="comments" rows="4" placeholder="Share your experience" required></textarea>
+                        <div class="invalid-feedback">Please provide your feedback comments</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="feedbackForm" class="btn btn-primary">Submit Feedback</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div class="modal fade" id="qrCodeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registration QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <div id="qrcode" class="d-inline-block p-3 bg-white rounded shadow-sm"></div>
+                </div>
+                <p class="mb-3">Scan this QR code to register for <strong>{{ event.title }}</strong></p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" value="{{ event.registration_link }}" readonly>
+                    <button class="btn btn-outline-primary copy-link-btn" type="button" data-link="{{ event.registration_link }}">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <div class="d-flex justify-content-center mt-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-2 download-qr-btn">
+                        <i class="fas fa-download"></i> Download QR
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary print-qr-btn">
+                        <i class="fas fa-print"></i> Print QR
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Share Event Modal -->
+<div class="modal fade" id="shareEventModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Share Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Event Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.event_id %}" id="eventLink" readonly>
+                        <button class="btn btn-outline-primary copy-link-btn" type="button" data-link="{{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.event_id %}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Registration Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ event.registration_link }}" readonly>
+                        <button class="btn btn-outline-primary copy-link-btn" type="button" data-link="{{ event.registration_link }}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Share via Email</label>
+                    <div class="input-group">
+                        <input type="email" class="form-control" placeholder="Enter email address" id="shareEmail">
+                        <button class="btn btn-primary" type="button" id="sendEmailBtn">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                    <div class="form-text">Send the event details and registration link via email.</div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="https://twitter.com/intent/tweet?text=Join%20us%20at%20{{ event.title|urlencode }}!&url={{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.event_id %}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fab fa-twitter me-2"></i> Share on Twitter
+                    </a>
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.event_id }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fab fa-facebook me-2"></i> Share on Facebook
+                    </a>
+                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.scheme }}://{{ request.get_host }}{% url 'event_detail' event.event_id }}&title={{ event.title|urlencode }}" target="_blank" class="btn btn-outline-primary">
+                        <i class="fab fa-linkedin me-2"></i> Share on LinkedIn
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style type="text/css">
+    .icon-box {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+        list-style: none;
+    }
+
+    .timeline-item {
+        position: relative;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        left: -30px;
+        top: 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        top: 0;
+        height: 100%;
+        width: 2px;
+        background: #e9ecef;
+    }
+
+    .rating-stars {
+        cursor: pointer;
+    }
+
+    .rating-stars .rating-star {
+        margin: 0 5px;
+        transition: all 0.2s;
+    }
+
+    .rating-stars .rating-star:hover,
+    .rating-stars .rating-star.active {
+        color: #ffc107 !important;
+        transform: scale(1.2);
+    }
+
+    .event-banner {
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include QR Code library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Star rating functionality
+        const stars = document.querySelectorAll('.rating-stars i');
+        const ratingInput = document.getElementById('rating-value');
+        const ratingText = document.querySelector('.rating-text');
+        const feedbackForm = document.getElementById('feedbackForm');
+        const feedbackError = document.getElementById('feedbackError');
+        const feedbackSuccess = document.getElementById('feedbackSuccess');
+        const ratingTexts = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+        // Star rating functionality
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                const rating = parseInt(this.dataset.rating);
+                updateStars(rating);
+                ratingText.textContent = ratingTexts[rating - 1];
+            });
+
+            star.addEventListener('mouseout', function() {
+                const currentRating = parseInt(ratingInput.value) || 0;
+                updateStars(currentRating);
+                ratingText.textContent = currentRating > 0 ? ratingTexts[currentRating - 1] : '';
+            });
+
+            star.addEventListener('click', function() {
+                const rating = parseInt(this.dataset.rating);
+                ratingInput.value = rating;
+                updateStars(rating);
+                ratingText.textContent = ratingTexts[rating - 1];
+                ratingInput.classList.remove('is-invalid');
+                ratingText.classList.remove('text-danger');
+            });
+        });
+
+        function updateStars(rating) {
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.remove('far');
+                    star.classList.add('fas', 'text-warning');
+                } else {
+                    star.classList.remove('fas', 'text-warning');
+                    star.classList.add('far');
+                }
+            });
+        }
+
+        // Form validation and submission
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Hide any previous messages
+                feedbackError.classList.add('d-none');
+                feedbackSuccess.classList.add('d-none');
+
+                // Check if rating is selected
+                const rating = ratingInput.value;
+                if (!rating || rating === '0') {
+                    ratingInput.classList.add('is-invalid');
+                    ratingText.classList.add('text-danger');
+                    ratingText.textContent = 'Please select a rating';
+                    return;
+                }
+
+                // Check if comments are provided
+                const comments = document.getElementById('comments');
+                if (!comments.value.trim()) {
+                    comments.classList.add('is-invalid');
+                    return;
+                }
+
+                // Get the form data
+                const formData = new FormData(this);
+
+                // Submit the form via AJAX
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === 'success') {
+                        feedbackSuccess.textContent = data.message;
+                        feedbackSuccess.classList.remove('d-none');
+                        // Reset form
+                        this.reset();
+                        updateStars(0);
+                        ratingText.textContent = '';
+                        // Close the modal after 2 seconds
+                        setTimeout(() => {
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('feedbackModal'));
+                            modal.hide();
+                            // Reload the page to show the new feedback
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        feedbackError.textContent = data.message;
+                        feedbackError.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    feedbackError.textContent = 'There was an error submitting your feedback. Please try again.';
+                    feedbackError.classList.remove('d-none');
+                });
+            });
+
+            // Clear validation state when input changes
+            const comments = document.getElementById('comments');
+            comments.addEventListener('input', function() {
+                this.classList.remove('is-invalid');
+            });
+        }
+
+        // Generate QR code
+        const qrcodeContainer = document.getElementById('qrcode');
+        const registrationLink = "{{ event.registration_link }}";
+
+        if (qrcodeContainer && registrationLink) {
+            // Clear previous QR code if any
+            qrcodeContainer.innerHTML = '';
+
+            // Generate new QR code
+            new QRCode(qrcodeContainer, {
+                text: registrationLink,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+
+        // Copy link button functionality
+        const copyLinkBtns = document.querySelectorAll('.copy-link-btn');
+        copyLinkBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const link = this.getAttribute('data-link');
+                navigator.clipboard.writeText(link).then(() => {
+                    // Change button text temporarily
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    this.classList.add('btn-success');
+                    this.classList.remove('btn-outline-primary');
+
+                    // Revert after 2 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-outline-primary');
+                    }, 2000);
+                });
+            });
+        });
+
+        // Download QR code functionality
+        const downloadQrBtn = document.querySelector('.download-qr-btn');
+        if (downloadQrBtn) {
+            downloadQrBtn.addEventListener('click', function() {
+                const canvas = qrcodeContainer.querySelector('canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'registration-qr-code.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            });
+        }
+
+        // Print QR code functionality
+        const printQrBtn = document.querySelector('.print-qr-btn');
+        if (printQrBtn) {
+            printQrBtn.addEventListener('click', function() {
+                const canvas = qrcodeContainer.querySelector('canvas');
+                if (canvas) {
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const windowContent = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Registration QR Code - {{ event.title }}</title>
+                            <style>
+                                body {
+                                    text-align: center;
+                                    font-family: Arial, sans-serif;
+                                }
+                                .container {
+                                    margin: 50px auto;
+                                    max-width: 500px;
+                                }
+                                img {
+                                    max-width: 100%;
+                                    height: auto;
+                                }
+                                h2 {
+                                    margin-bottom: 10px;
+                                }
+                                p {
+                                    color: #666;
+                                    margin-bottom: 30px;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h2>Registration QR Code</h2>
+                                <p>Event: {{ event.title }}</p>
+                                <img src="${dataUrl}" alt="Registration QR Code">
+                                <p>Scan this QR code to register for the event</p>
+                                <p>Registration Link: {{ event.registration_link }}</p>
+                            </div>
+                        </body>
+                        </html>
+                    `;
+
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(windowContent);
+                    printWindow.document.close();
+                    printWindow.onload = function() {
+                        printWindow.print();
+                        printWindow.close();
+                    };
+                }
+            });
+        }
+
+        // Email sharing functionality
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        if (sendEmailBtn) {
+            sendEmailBtn.addEventListener('click', function() {
+                const emailInput = document.getElementById('shareEmail');
+                const email = emailInput.value.trim();
+
+                if (!email) {
+                    alert('Please enter an email address');
+                    return;
+                }
+
+                // Simple email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+
+                // Show sending state
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+                this.disabled = true;
+
+                // In a real application, you would send an AJAX request to the server
+                // For now, we'll just simulate a successful email send
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-check"></i> Sent!';
+                    this.classList.remove('btn-primary');
+                    this.classList.add('btn-success');
+
+                    // Reset after 3 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.classList.remove('btn-success');
+                        this.classList.add('btn-primary');
+                        this.disabled = false;
+                        emailInput.value = '';
+                    }, 3000);
+                }, 1500);
+            });
+        }
+    });
+</script>
+{% endblock %}

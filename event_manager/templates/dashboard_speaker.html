@@ -1,0 +1,227 @@
+{% extends 'dashboard_base.html' %}
+
+{% block title %}Speaker Dashboard - Event Manager{% endblock %}
+
+{% block dashboard_title %}Speaker Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li class="nav-item">
+    <a class="nav-link {% if request.path == '/events/dashboard/speaker/' %}active{% endif %}" href="{% url 'speaker_dashboard' %}">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-calendar-alt"></i>
+        <span>My Speaking Engagements</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-file-alt"></i>
+        <span>My Presentations</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-star"></i>
+        <span>Feedback</span>
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="#">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+</li>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Upcoming Engagements</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_events.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Past Engagements</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ past_events.count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-history fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Total Attendees</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% with total_attendees=0 %}
+                                {% for event in past_events %}
+                                    {% with total_attendees=total_attendees|add:event.registration_set.count %}
+                                    {% endwith %}
+                                {% endfor %}
+                                {{ total_attendees }}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Average Rating</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% with total_rating=0 %}
+                                {% for item in feedback %}
+                                    {% with total_rating=total_rating|add:item.rating %}
+                                    {% endwith %}
+                                {% endfor %}
+                                {% if feedback.count > 0 %}
+                                    {% widthratio total_rating feedback.count 1 as avg_rating %}
+                                    {{ avg_rating|floatformat:1 }}/5
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-star fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Speaking Engagements -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Upcoming Speaking Engagements</h6>
+            </div>
+            <div class="card-body">
+                {% if upcoming_events %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Topic</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in upcoming_events %}
+                                    <tr>
+                                        <td>{{ event.title }}</td>
+                                        <td>{{ event.start_date|date:"F d, Y" }}</td>
+                                        <td>{{ event.location }}</td>
+                                        <td>
+                                            {% with registration=event.registration_set.first %}
+                                                {{ registration.topic|default:"Not specified" }}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            <a href="#" class="btn btn-sm btn-primary">View Details</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>You don't have any upcoming speaking engagements.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Feedback -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Feedback</h6>
+            </div>
+            <div class="card-body">
+                {% if feedback %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Attendee</th>
+                                    <th>Rating</th>
+                                    <th>Comment</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in feedback %}
+                                    <tr>
+                                        <td>{{ item.event.title }}</td>
+                                        <td>{{ item.user.get_full_name }}</td>
+                                        <td>
+                                            {% for i in "12345"|make_list %}
+                                                {% if forloop.counter <= item.rating %}
+                                                    <i class="fas fa-star text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-star text-warning"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ item.comments|truncatechars:50 }}</td>
+                                        <td>{{ item.feedback_id|date:"F d, Y" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>You haven't received any feedback yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

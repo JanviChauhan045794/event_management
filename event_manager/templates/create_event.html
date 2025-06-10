@@ -1,0 +1,660 @@
+{% extends 'organizer/base.html' %}
+
+{% block title %}Create Event - Event Manager{% endblock %}
+
+{% block dashboard_title %}Create New Event{% endblock %}
+
+{% block page_title %}Create New Event{% endblock %}
+
+{% block content %}
+<!-- Main container with extra bottom padding to avoid footer overlap -->
+<div class="container-fluid pb-5 mb-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="m-0 text-primary"><i class="fas fa-calendar-plus me-2"></i>Create New Event</h3>
+                <a href="{% url 'organizer_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Alert messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Form card -->
+            <div class="card shadow border-0 mb-5">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Event Information</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate id="createEventForm">
+                        {% csrf_token %}
+
+                        <!-- Form content in tabs -->
+                        <ul class="nav nav-tabs mb-4" id="eventFormTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Info
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="datetime-tab" data-bs-toggle="tab" data-bs-target="#datetime" type="button" role="tab" aria-controls="datetime" aria-selected="false">
+                                    <i class="fas fa-clock me-2"></i>Date & Time
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
+                                    <i class="fas fa-tag me-2"></i>Details & Media
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="registration-tab" data-bs-toggle="tab" data-bs-target="#registration" type="button" role="tab" aria-controls="registration" aria-selected="false">
+                                    <i class="fas fa-users me-2"></i>Capacity & Registration
+                                </button>
+                            </li>
+                        </ul>
+
+                        <!-- Tab content -->
+                        <div class="tab-content" id="eventFormTabContent">
+                            <!-- Basic Info Tab -->
+                            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_title" class="form-label fw-bold">Event Title <span class="text-danger">*</span></label>
+                                        {{ form.title }}
+                                        {% if form.title.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Choose a clear, descriptive title for your event.</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_description" class="form-label fw-bold">Description <span class="text-danger">*</span></label>
+                                        {{ form.description }}
+                                        {% if form.description.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.description.help_text }}</div>
+                                        <div id="description-counter" class="form-text text-end"></div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_location" class="form-label fw-bold">Location <span class="text-danger">*</span></label>
+                                        {{ form.location }}
+                                        {% if form.location.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.location.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Enter the full venue address or "Online" for virtual events.</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date & Time Tab -->
+                            <div class="tab-pane fade" id="datetime" role="tabpanel" aria-labelledby="datetime-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_start_date" class="form-label fw-bold">Start Date & Time <span class="text-danger">*</span></label>
+                                        {{ form.start_date }}
+                                        {% if form.start_date.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.start_date.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.start_date.help_text }}</div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_end_date" class="form-label fw-bold">End Date & Time <span class="text-danger">*</span></label>
+                                        {{ form.end_date }}
+                                        {% if form.end_date.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.end_date.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.end_date.help_text }}</div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="alert alert-info mt-3" id="date-validation-message">
+                                            <i class="fas fa-info-circle me-2"></i> Make sure the end date is after the start date.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Details & Media Tab -->
+                            <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_category" class="form-label fw-bold">Event Category <span class="text-danger">*</span></label>
+                                        {{ form.category }}
+                                        {% if form.category.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Select a category that best fits your event.</div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_ticket_price" class="form-label fw-bold">Ticket Price ($)</label>
+                                        {{ form.ticket_price }}
+                                        {% if form.ticket_price.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.ticket_price.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Set to 0 for free events.</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_banner" class="form-label fw-bold">Event Banner</label>
+                                        {{ form.banner }}
+                                        {% if form.banner.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.banner.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Recommended size: 1200x400px. Max file size: 5MB.</div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="text-center p-3 border rounded bg-light" id="bannerPreviewContainer">
+                                            <img id="bannerPreview" src="" class="img-fluid rounded d-none" alt="Banner Preview">
+                                            <div id="bannerPlaceholder" class="p-5 text-center text-muted">
+                                                <i class="fas fa-image fa-3x mb-3"></i>
+                                                <p>Banner preview will appear here</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3 mt-4">
+                                        <label for="id_rulebook" class="form-label fw-bold">Rulebook (Optional)</label>
+                                        {{ form.rulebook }}
+                                        {% if form.rulebook.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.rulebook.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Upload a PDF with rules or guidelines for your event.</div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <hr class="my-4">
+                                        <h5 class="mb-3"><i class="fas fa-microphone me-2 text-primary"></i>Speaker Information</h5>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_speakers" class="form-label fw-bold">Event Speakers</label>
+                                        {{ form.speakers }}
+                                        {% if form.speakers.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.speakers.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.speakers.help_text }}</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_keynote_speaker" class="form-label fw-bold">Keynote Speaker (Optional)</label>
+                                        {{ form.keynote_speaker }}
+                                        {% if form.keynote_speaker.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.keynote_speaker.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.keynote_speaker.help_text }}</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_speaker_topics" class="form-label fw-bold">Speaker Topics (Optional)</label>
+                                        {{ form.speaker_topics }}
+                                        {% if form.speaker_topics.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.speaker_topics.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.speaker_topics.help_text }}</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.notify_speakers }}
+                                            <label class="form-check-label" for="id_notify_speakers">Notify Speakers</label>
+                                        </div>
+                                        {% if form.notify_speakers.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.notify_speakers.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.notify_speakers.help_text }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Capacity & Registration Tab -->
+                            <div class="tab-pane fade" id="registration" role="tabpanel" aria-labelledby="registration-tab">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="id_capacity" class="form-label fw-bold">Event Capacity</label>
+                                        <div class="input-group">
+                                            {{ form.capacity }}
+                                            <span class="input-group-text">seats</span>
+                                        </div>
+                                        {% if form.capacity.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.capacity.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Maximum number of attendees allowed for this event.</div>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-check form-switch mt-4">
+                                            {{ form.enable_registration }}
+                                            <label class="form-check-label" for="id_enable_registration">Allow Registration</label>
+                                        </div>
+                                        {% if form.enable_registration.errors %}
+                                            <div class="invalid-feedback d-block">{{ form.enable_registration.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Toggle to enable or disable registration for this event.</div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-3">
+                                        <div class="form-check form-switch mb-2">
+                                            {{ form.custom_registration_link }}
+                                            <label class="form-check-label" for="id_custom_registration_link">Use Custom Registration Link</label>
+                                        </div>
+
+                                        <div id="registration_link_container" class="mt-2" style="display: none;">
+                                            <label for="id_registration_link" class="form-label">Custom Registration Link</label>
+                                            {{ form.registration_link }}
+                                            {% if form.registration_link.errors %}
+                                                <div class="invalid-feedback d-block">{{ form.registration_link.errors }}</div>
+                                            {% endif %}
+                                            <div class="form-text">Enter a custom URL for event registration.</div>
+                                        </div>
+
+                                        <div id="auto_registration_link_container" class="mt-2">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle me-2"></i> A registration link will be automatically generated when you create the event.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12">
+                                        <div class="alert alert-primary border-0 shadow-sm">
+                                            <div class="d-flex">
+                                                <div class="me-3">
+                                                    <i class="fas fa-lightbulb fa-2x text-primary"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="alert-heading fw-bold">Registration Tips</h6>
+                                                    <p class="mb-0">After creating your event, you'll be able to share a registration link and QR code with potential attendees. You can also adjust the capacity at any time.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mt-4">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Form buttons -->
+                        <div class="d-flex justify-content-between mt-4 pt-4 border-top">
+                            <a href="{% url 'organizer_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-1"></i> Create Event
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Main container styles */
+    .container-fluid.pb-5.mb-5 {
+        min-height: calc(100vh - 200px);
+    }
+
+    /* Card styles */
+    .bg-gradient-primary {
+        background: linear-gradient(to right, #4e73df, #224abe);
+    }
+
+    .card .card-header.bg-gradient-primary {
+        color: white;
+        border-bottom: 0;
+    }
+
+    .card {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+        margin-bottom: 30px;
+    }
+
+    /* Form styles */
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #444;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #bac8f3;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+
+    .form-text {
+        color: #858796;
+    }
+
+    /* Tab styles */
+    .nav-tabs .nav-link {
+        color: #5a5c69;
+        font-weight: 600;
+        border: 1px solid transparent;
+        border-top-left-radius: 0.35rem;
+        border-top-right-radius: 0.35rem;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #4e73df;
+        border-color: #e3e6f0 #e3e6f0 #fff;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #4e73df;
+        background-color: #fff;
+        border-color: #e3e6f0 #e3e6f0 #fff;
+        border-bottom: 3px solid #4e73df;
+    }
+
+    /* Banner styles */
+    #bannerPlaceholder {
+        min-height: 150px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-color: #f8f9fa;
+    }
+
+    #bannerPreview {
+        max-height: 200px;
+        object-fit: cover;
+    }
+
+    /* Button styles */
+    .btn-primary {
+        background-color: #4e73df;
+        border-color: #4e73df;
+        box-shadow: 0 0.125rem 0.25rem 0 rgba(58, 59, 69, 0.2);
+        transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+        background-color: #2e59d9;
+        border-color: #2653d4;
+        transform: translateY(-1px);
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #858796;
+        color: white;
+    }
+
+    /* Date validation styles */
+    #date-validation-message {
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+    }
+
+    #date-validation-message.alert-info {
+        border-left-color: #0dcaf0;
+    }
+
+    #date-validation-message.alert-danger {
+        border-left-color: #dc3545;
+        animation: shake 0.5s;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+
+    /* Form Switch Styling */
+    .form-check-input:checked {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        margin-top: 0.25em;
+    }
+
+    .form-switch .form-check-input:focus {
+        border-color: rgba(78, 115, 223, 0.25);
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        padding-left: 0.5rem;
+    }
+
+    /* Registration Link Styles */
+    #registration_link_container, #auto_registration_link_container {
+        transition: all 0.3s ease;
+    }
+
+    /* Spacing for footer */
+    .mb-5 {
+        margin-bottom: 5rem !important;
+    }
+
+    .pb-5 {
+        padding-bottom: 5rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add Bootstrap form-control class to all form inputs
+        const formControls = document.querySelectorAll('input, select, textarea');
+        formControls.forEach(control => {
+            if (!control.classList.contains('form-control') && control.type !== 'file') {
+                control.classList.add('form-control');
+            }
+        });
+
+        // Add Bootstrap form-select class to all select elements
+        const selectControls = document.querySelectorAll('select');
+        selectControls.forEach(select => {
+            select.classList.add('form-select');
+        });
+
+        // Add Bootstrap form-control-file class to file input
+        const fileControl = document.querySelector('input[type="file"]');
+        if (fileControl) {
+            fileControl.classList.add('form-control');
+
+            // Banner preview functionality
+            fileControl.addEventListener('change', function() {
+                const file = this.files[0];
+                const bannerPreview = document.getElementById('bannerPreview');
+                const bannerPlaceholder = document.getElementById('bannerPlaceholder');
+
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        bannerPreview.src = e.target.result;
+                        bannerPreview.classList.remove('d-none');
+                        bannerPlaceholder.classList.add('d-none');
+                    }
+
+                    reader.readAsDataURL(file);
+                } else {
+                    bannerPreview.classList.add('d-none');
+                    bannerPlaceholder.classList.remove('d-none');
+                }
+            });
+        }
+
+        // Enhanced form validation
+        const form = document.getElementById('createEventForm');
+
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            form.classList.add('was-validated');
+        });
+
+        // Date validation
+        const startDateInput = document.getElementById('id_start_date');
+        const endDateInput = document.getElementById('id_end_date');
+        const dateErrorContainer = document.getElementById('date-validation-message');
+        const datetimeTab = document.getElementById('datetime-tab');
+
+        function validateDates() {
+            if (startDateInput.value && endDateInput.value) {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+
+                if (endDate <= startDate) {
+                    // Show error message
+                    dateErrorContainer.classList.remove('alert-info');
+                    dateErrorContainer.classList.add('alert-danger');
+                    dateErrorContainer.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i> Error: End date must be after start date.';
+                    endDateInput.setCustomValidity('End date must be after start date');
+                    return false;
+                } else {
+                    // Show success message
+                    dateErrorContainer.classList.remove('alert-danger');
+                    dateErrorContainer.classList.add('alert-info');
+                    dateErrorContainer.innerHTML = '<i class="fas fa-check-circle me-2"></i> Dates are valid.';
+                    endDateInput.setCustomValidity('');
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        if (startDateInput && endDateInput && dateErrorContainer) {
+            // Initial validation
+            if (startDateInput.value && endDateInput.value) {
+                validateDates();
+            }
+
+            // Add event listeners
+            endDateInput.addEventListener('change', validateDates);
+            startDateInput.addEventListener('change', validateDates);
+
+            // Add validation before form submission
+            form.addEventListener('submit', function(e) {
+                if (!validateDates()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Switch to datetime tab and scroll to the error message
+                    if (datetimeTab) {
+                        datetimeTab.click();
+                    }
+                    dateErrorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        // Add character counter for description
+        const descriptionTextarea = document.getElementById('id_description');
+        const descriptionCounter = document.getElementById('description-counter');
+
+        if (descriptionTextarea && descriptionCounter) {
+            function updateCounter() {
+                const currentLength = descriptionTextarea.value.length;
+                descriptionCounter.textContent = `${currentLength} characters`;
+            }
+
+            descriptionTextarea.addEventListener('input', updateCounter);
+            updateCounter(); // Initial count
+        }
+
+        // Tab navigation - show appropriate tab if there are errors
+        function checkTabsForErrors() {
+            // Check if there are any errors in each tab
+            const basicTabHasErrors = document.querySelector('#basic .invalid-feedback') !== null;
+            const datetimeTabHasErrors = document.querySelector('#datetime .invalid-feedback') !== null;
+            const detailsTabHasErrors = document.querySelector('#details .invalid-feedback') !== null;
+
+            // Switch to the first tab with errors
+            if (basicTabHasErrors) {
+                document.getElementById('basic-tab').click();
+            } else if (datetimeTabHasErrors) {
+                document.getElementById('datetime-tab').click();
+            } else if (detailsTabHasErrors) {
+                document.getElementById('details-tab').click();
+            }
+        }
+
+        // Handle custom registration link toggle
+        const customLinkCheckbox = document.getElementById('id_custom_registration_link');
+        const customLinkContainer = document.getElementById('registration_link_container');
+        const autoLinkContainer = document.getElementById('auto_registration_link_container');
+
+        if (customLinkCheckbox && customLinkContainer && autoLinkContainer) {
+            function toggleRegistrationLinkFields() {
+                if (customLinkCheckbox.checked) {
+                    customLinkContainer.style.display = 'block';
+                    autoLinkContainer.style.display = 'none';
+                } else {
+                    customLinkContainer.style.display = 'none';
+                    autoLinkContainer.style.display = 'block';
+                }
+            }
+
+            // Initial toggle
+            toggleRegistrationLinkFields();
+
+            // Add event listener for changes
+            customLinkCheckbox.addEventListener('change', toggleRegistrationLinkFields);
+        }
+
+        // Run error check on page load
+        checkTabsForErrors();
+
+        // Ensure form has plenty of space from footer
+        const formContainer = document.querySelector('.container-fluid.pb-5.mb-5');
+        if (formContainer) {
+            // Adjust minimum height to ensure form doesn't overlap with footer
+            const windowHeight = window.innerHeight;
+            formContainer.style.minHeight = (windowHeight - 150) + 'px';
+        }
+
+        // Add registration tab to error checking
+        function checkRegistrationTabForErrors() {
+            const registrationTabHasErrors = document.querySelector('#registration .invalid-feedback') !== null;
+            if (registrationTabHasErrors) {
+                document.getElementById('registration-tab').click();
+            }
+        }
+
+        // Add to the existing error check function
+        const originalCheckTabsForErrors = checkTabsForErrors;
+        checkTabsForErrors = function() {
+            originalCheckTabsForErrors();
+            checkRegistrationTabForErrors();
+        };
+    });
+</script>
+{% endblock %}

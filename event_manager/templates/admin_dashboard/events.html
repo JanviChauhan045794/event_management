@@ -1,0 +1,295 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Events Management - CorpEventX Admin{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Events Management</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Events</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-filter me-2"></i> Filters
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="category" class="form-label">Category</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.category_id }}" {% if filters.category == category.category_id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">All Status</option>
+                    <option value="upcoming" {% if filters.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                    <option value="ongoing" {% if filters.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                    <option value="past" {% if filters.status == 'past' %}selected{% endif %}>Past</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="q" class="form-label">Search</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="q" name="q" placeholder="Search events..." value="{{ filters.q }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Events Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-calendar-alt me-2"></i> Events</span>
+        <a href="/admin/events/event/add/" class="btn btn-sm btn-success">
+            <i class="fas fa-plus me-1"></i> Add Event
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Organizer</th>
+                        <th>Status</th>
+                        <th>Registrations</th>
+                        <th>Revenue</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.category.name }}</td>
+                        <td>{{ event.start_date|date:"M d, Y H:i" }}</td>
+                        <td>{{ event.end_date|date:"M d, Y H:i" }}</td>
+                        <td>{{ event.organizer.get_full_name|default:event.organizer.email }}</td>
+                        <td>
+                            {% if event.get_status == 'Upcoming' %}
+                                <span class="badge bg-primary">{{ event.get_status }}</span>
+                            {% elif event.get_status == 'Ongoing' %}
+                                <span class="badge bg-success">{{ event.get_status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ event.get_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% with reg_count=event.registration_set.count %}
+                                {{ reg_count }}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            {% with revenue=event.revenues.first %}
+                                {% if revenue %}
+                                    ₹{{ revenue.total_revenue }}
+                                {% else %}
+                                    ₹0.00
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="/admin/events/event/{{ event.event_id }}/change/" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-info view-event-btn" data-bs-toggle="modal" data-bs-target="#viewEventModal" 
+                                    data-event-id="{{ event.event_id }}"
+                                    data-event-title="{{ event.title }}"
+                                    data-event-description="{{ event.description }}"
+                                    data-event-category="{{ event.category.name }}"
+                                    data-event-start="{{ event.start_date|date:'M d, Y H:i' }}"
+                                    data-event-end="{{ event.end_date|date:'M d, Y H:i' }}"
+                                    data-event-location="{{ event.location }}"
+                                    data-event-organizer="{{ event.organizer.get_full_name|default:event.organizer.email }}"
+                                    data-event-price="{{ event.ticket_price }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <a href="{% url 'event_detail' event.event_id %}" target="_blank" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center">No events found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if events.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if events.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.previous_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="First">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for num in events.paginator.page_range %}
+                    {% if events.number == num %}
+                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                    {% elif num > events.number|add:'-3' and num < events.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if events.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.next_page_number }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.paginator.num_pages }}{% for key, value in filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Last">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<!-- View Event Modal -->
+<div class="modal fade" id="viewEventModal" tabindex="-1" aria-labelledby="viewEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewEventModalLabel">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h3 id="modalEventTitle"></h3>
+                    <span id="modalEventCategory" class="badge bg-primary"></span>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Start Date</label>
+                        <p id="modalEventStart"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">End Date</label>
+                        <p id="modalEventEnd"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Location</label>
+                        <p id="modalEventLocation"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Organizer</label>
+                        <p id="modalEventOrganizer"></p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Ticket Price</label>
+                        <p id="modalEventPrice"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Description</label>
+                        <p id="modalEventDescription"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="modalEditEventBtn" class="btn btn-primary">Edit Event</a>
+                <a href="#" id="modalViewEventBtn" class="btn btn-info" target="_blank">View Event Page</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View Event Modal
+        const viewEventBtns = document.querySelectorAll('.view-event-btn');
+        viewEventBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const eventId = this.getAttribute('data-event-id');
+                const eventTitle = this.getAttribute('data-event-title');
+                const eventDescription = this.getAttribute('data-event-description');
+                const eventCategory = this.getAttribute('data-event-category');
+                const eventStart = this.getAttribute('data-event-start');
+                const eventEnd = this.getAttribute('data-event-end');
+                const eventLocation = this.getAttribute('data-event-location');
+                const eventOrganizer = this.getAttribute('data-event-organizer');
+                const eventPrice = this.getAttribute('data-event-price');
+                
+                document.getElementById('modalEventTitle').textContent = eventTitle;
+                document.getElementById('modalEventCategory').textContent = eventCategory;
+                document.getElementById('modalEventStart').textContent = eventStart;
+                document.getElementById('modalEventEnd').textContent = eventEnd;
+                document.getElementById('modalEventLocation').textContent = eventLocation;
+                document.getElementById('modalEventOrganizer').textContent = eventOrganizer;
+                document.getElementById('modalEventPrice').textContent = `₹${eventPrice}`;
+                document.getElementById('modalEventDescription').textContent = eventDescription;
+                document.getElementById('modalEditEventBtn').href = `/admin/events/event/${eventId}/change/`;
+                document.getElementById('modalViewEventBtn').href = `/events/${eventId}/`;
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,472 @@
+{% extends 'dashboard_new_base.html' %}
+
+{% block title %}Manage Sponsors{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                <h2 class="mb-1">Manage Sponsors</h2>
+                <p class="text-muted mb-0">Add, edit, and manage sponsors for your events.</p>
+            </div>
+            <div class="d-flex align-items-center animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSponsorModal">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Sponsor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.1s">
+    <div class="col-md-12">
+        <div class="card shadow border-0">
+            <div class="card-body p-3">
+                <form id="sponsorFilterForm">
+                <div class="row g-2">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                            <input type="text" id="sponsorSearch" class="form-control border-0 bg-light" placeholder="Search sponsors..." aria-label="Search sponsors">
+                        </div>
+                    </div>
+
+                        <!-- Event Filter -->
+                        <div class="col-md-4">
+                            <select class="form-select bg-light border-0" id="eventFilter" name="event">
+                            <option value="">All Events</option>
+                            {% for event in events %}
+                                <option value="{{ event.event_id }}">{{ event.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                        <!-- Tier Filter -->
+                        <div class="col-md-4">
+                            <select class="form-select bg-light border-0" id="tierFilter" name="tier">
+                            <option value="">All Tiers</option>
+                            <option value="gold">Gold</option>
+                            <option value="silver">Silver</option>
+                            <option value="bronze">Bronze</option>
+                        </select>
+                    </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-md-3">
+                            <select class="form-select bg-light border-0" id="statusFilter" name="status">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="pending">Pending</option>
+                            </select>
+                        </div>
+
+                        <!-- Industry Filter -->
+                        <div class="col-md-3">
+                            <select class="form-select bg-light border-0" id="industryFilter" name="industry">
+                                <option value="">All Industries</option>
+                                <option value="technology">Technology</option>
+                                <option value="finance">Finance</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="education">Education</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Date Range -->
+                        <div class="col-md-3">
+                            <input type="date" class="form-control bg-light border-0" id="startDate" name="start_date" placeholder="Start Date">
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control bg-light border-0" id="endDate" name="end_date" placeholder="End Date">
+                        </div>
+
+                        <!-- Contribution Range -->
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">$</span>
+                                <input type="number" class="form-control bg-light border-0" id="minAmount" name="min_amount" placeholder="Min Amount">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0">$</span>
+                                <input type="number" class="form-control bg-light border-0" id="maxAmount" name="max_amount" placeholder="Max Amount">
+                            </div>
+                        </div>
+
+                        <!-- Filter Actions -->
+                        <div class="col-md-4">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1">
+                                    <i class="fas fa-filter me-1"></i> Apply Filters
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sponsors List -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.2s">
+    <div class="col-md-12">
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-handshake me-2"></i>Sponsors</h5>
+                <div>
+                    <button type="button" class="btn btn-sm btn-light" id="refreshSponsors">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if sponsors %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="sponsorsTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Sponsor</th>
+                                <th>Event</th>
+                                <th>Tier</th>
+                                <th>Contact</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sponsor in sponsors %}
+                            <tr class="sponsor-row animate__animated animate__fadeIn" 
+                                style="animation-delay: {{ forloop.counter|add:"1" }}0ms"
+                                data-event-id="{{ sponsor.event.event_id }}"
+                                data-tier="{{ sponsor.tier }}"
+                                data-status="{{ sponsor.status|default:'active' }}"
+                                data-industry="{{ sponsor.industry|default:'other' }}"
+                                data-date="{{ sponsor.created_at|date:'Y-m-d' }}"
+                                data-amount="{{ sponsor.contribution_amount|default:0 }}">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="sponsor-logo me-3 bg-light rounded d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
+                                            <i class="fas fa-building text-primary fa-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ sponsor.name }}</h6>
+                                            <small class="text-muted">ID: {{ sponsor.sponsor_id|truncatechars:8 }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary rounded-pill px-3 py-2">{{ sponsor.event.title }}</span>
+                                </td>
+                                <td>
+                                    {% if sponsor.tier == 'gold' %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2">Gold</span>
+                                    {% elif sponsor.tier == 'silver' %}
+                                    <span class="badge bg-secondary rounded-pill px-3 py-2">Silver</span>
+                                    {% else %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">Bronze</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div><i class="fas fa-envelope me-1 text-muted"></i> contact@{{ sponsor.name|lower|cut:" " }}.com</div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="btn-group action-buttons">
+                                        <button type="button" class="btn btn-sm btn-outline-primary view-sponsor" data-bs-toggle="tooltip" title="View Sponsor Details" data-sponsor-id="{{ sponsor.sponsor_id }}">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary edit-sponsor" data-bs-toggle="tooltip" title="Edit Sponsor" data-sponsor-id="{{ sponsor.sponsor_id }}">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-sponsor" data-bs-toggle="tooltip" title="Remove Sponsor" data-sponsor-id="{{ sponsor.sponsor_id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5 animate__animated animate__fadeIn">
+                    <div class="py-5">
+                        <i class="fas fa-handshake fa-4x text-muted mb-4 animate__animated animate__pulse animate__infinite"></i>
+                        <h4 class="mb-3">No Sponsors Found</h4>
+                        <p class="text-muted mb-4">You haven't added any sponsors yet. Start by adding your first sponsor!</p>
+                        <button type="button" class="btn btn-primary animate__animated animate__heartBeat animate__delay-1s" data-bs-toggle="modal" data-bs-target="#addSponsorModal">
+                            <i class="fas fa-plus-circle me-2"></i>Add New Sponsor
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sponsor Statistics -->
+{% if sponsors %}
+<div class="row animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+    <div class="col-md-12">
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-gradient-secondary text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Sponsor Statistics</h5>
+            </div>
+            <div class="card-body py-4">
+                <div class="row g-4">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-0 bg-primary bg-opacity-10 h-100 stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+                            <div class="card-body text-center py-4">
+                                <div class="stat-icon-circle bg-primary text-white mb-3">
+                                    <i class="fas fa-handshake fa-lg"></i>
+                                </div>
+                                <h3 class="mb-1 counter">{{ total_sponsors }}</h3>
+                                <p class="mb-0 text-muted">Total Sponsors</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-0 bg-warning bg-opacity-10 h-100 stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
+                            <div class="card-body text-center py-4">
+                                <div class="stat-icon-circle bg-warning text-white mb-3">
+                                    <i class="fas fa-trophy fa-lg"></i>
+                                </div>
+                                <h3 class="mb-1 counter">{{ gold_sponsors }}</h3>
+                                <p class="mb-0 text-muted">Gold Sponsors</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-0 bg-secondary bg-opacity-10 h-100 stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.6s">
+                            <div class="card-body text-center py-4">
+                                <div class="stat-icon-circle bg-secondary text-white mb-3">
+                                    <i class="fas fa-medal fa-lg"></i>
+                                </div>
+                                <h3 class="mb-1 counter">{{ silver_sponsors }}</h3>
+                                <p class="mb-0 text-muted">Silver Sponsors</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-0 bg-danger bg-opacity-10 h-100 stat-card animate__animated animate__fadeInUp" style="animation-delay: 0.7s">
+                            <div class="card-body text-center py-4">
+                                <div class="stat-icon-circle bg-danger text-white mb-3">
+                                    <i class="fas fa-award fa-lg"></i>
+                                </div>
+                                <h3 class="mb-1 counter">{{ bronze_sponsors }}</h3>
+                                <p class="mb-0 text-muted">Bronze Sponsors</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Add Sponsor Modal -->
+<div class="modal fade" id="addSponsorModal" tabindex="-1" aria-labelledby="addSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="addSponsorModalLabel">Add New Sponsor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSponsorForm">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="sponsorName" class="form-label">Sponsor Name</label>
+                            <input type="text" class="form-control" id="sponsorName" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sponsorTier" class="form-label">Sponsorship Tier</label>
+                            <select class="form-select" id="sponsorTier" name="tier" required>
+                                <option value="gold">Gold</option>
+                                <option value="silver">Silver</option>
+                                <option value="bronze">Bronze</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sponsorEvent" class="form-label">Event</label>
+                        <select class="form-select" id="sponsorEvent" name="event" required>
+                            {% for event in events %}
+                                <option value="{{ event.event_id }}">{{ event.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="sponsorContact" class="form-label">Contact Person</label>
+                            <input type="text" class="form-control" id="sponsorContact" name="contact">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sponsorEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="sponsorEmail" name="email">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sponsorLogo" class="form-label">Logo</label>
+                        <input type="file" class="form-control" id="sponsorLogo" name="logo">
+                        <div class="form-text">Recommended size: 200x200 pixels</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sponsorNotes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="sponsorNotes" name="notes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveSponsorBtn">
+                    <i class="fas fa-save me-1"></i> Save Sponsor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Sponsor Modal -->
+<div class="modal fade" id="viewSponsorModal" tabindex="-1" aria-labelledby="viewSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-primary text-white">
+                <h5 class="modal-title" id="viewSponsorModalLabel">Sponsor Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="sponsor-logo mx-auto bg-light rounded d-flex align-items-center justify-content-center shadow" style="width: 100px; height: 100px;">
+                        <i class="fas fa-building text-primary fa-3x"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1" id="viewSponsorName">Acme Corporation</h3>
+                    <div id="viewSponsorTier" class="badge bg-warning text-dark rounded-pill px-3 py-2">Gold</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-uppercase text-muted small">Contact Information</h6>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <p class="mb-2"><i class="fas fa-user me-2 text-primary"></i> <span id="viewSponsorContact">John Smith</span></p>
+                                    <p class="mb-0"><i class="fas fa-envelope me-2 text-primary"></i> <span id="viewSponsorEmail">contact@acme.com</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <h6 class="text-uppercase text-muted small">Event</h6>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <p class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i> <span id="viewSponsorEvent">Annual Tech Conference 2023</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="text-uppercase text-muted small">Notes</h6>
+                    <div class="card border-0 bg-light">
+                        <div class="card-body">
+                            <p id="viewSponsorNotes" class="mb-0">No notes available.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editSponsorFromViewBtn">
+                    <i class="fas fa-edit me-1"></i> Edit Sponsor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteSponsorModal" tabindex="-1" aria-labelledby="deleteSponsorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteSponsorModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="deleteSponsorName">this sponsor</strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i> This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteSponsorBtn">
+                    <i class="fas fa-trash me-1"></i> Delete Sponsor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Additional styles specific to Manage Sponsors page */
+    .sponsor-logo {
+        transition: all 0.3s ease;
+    }
+    
+    .sponsor-row:hover .sponsor-logo {
+        transform: scale(1.05);
+    }
+    
+    .stat-card {
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-7px);
+    }
+    
+    .stat-icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    
+    .counter {
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+    
+    /* Action buttons */
+    .action-buttons .btn {
+        margin: 0 2px;
+        transition: all 0.2s;
+    }
+    
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sponsors.js' %}"></script>
+{% endblock %}

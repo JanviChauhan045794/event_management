@@ -1,0 +1,468 @@
+{% extends 'organizer/base.html' %}
+
+{% block page_title %}All Feedback{% endblock %}
+
+{% block title %}All Feedback{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                <h2 class="mb-1">All Feedback</h2>
+                <p class="text-muted mb-0">View and manage feedback across all your events.</p>
+            </div>
+            <div class="d-flex align-items-center animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                <button type="button" class="btn btn-outline-primary me-2" id="exportFeedbackBtn">
+                    <i class="fas fa-file-export me-2"></i>Export Data
+                </button>
+                <button type="button" class="btn btn-primary" id="refreshDataBtn">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter Section -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.2s">
+    <div class="col-md-12">
+        <div class="card shadow border-0">
+            <div class="card-body p-3">
+                <form id="filterForm" method="get" action="{% url 'all_feedback' %}">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0"><i class="fas fa-search"></i></span>
+                                <input type="text" id="feedbackSearch" class="form-control border-0 bg-light" placeholder="Search feedback..." aria-label="Search feedback">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select bg-light border-0" id="eventFilter" name="event">
+                                <option value="">All Events</option>
+                                {% for event in events %}
+                                    <option value="{{ event.event_id }}" {% if event_filter == event.event_id|stringformat:"s" %}selected{% endif %}>
+                                        {{ event.title }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select bg-light border-0" id="ratingFilter" name="rating">
+                                <option value="">All Ratings</option>
+                                {% for i in "12345"|make_list %}
+                                    <option value="{{ i }}" {% if rating_filter == i %}selected{% endif %}>
+                                        {{ i }} Star{% if i != "1" %}s{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                            <a href="{% url 'all_feedback' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback Stats -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+    <div class="col-md-3">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="fas fa-comment-alt fa-2x text-primary"></i>
+                    </div>
+                </div>
+                <h3 class="mb-0">{{ total_feedback }}</h3>
+                <p class="text-muted">Total Feedback</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                        <i class="fas fa-star fa-2x text-warning"></i>
+                    </div>
+                </div>
+                <h3 class="mb-0">{{ avg_rating|floatformat:1 }}</h3>
+                <p class="text-muted">Average Rating</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Rating Distribution</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <div>
+                        <span class="d-inline-block me-2">5 <i class="fas fa-star text-warning"></i></span>
+                    </div>
+                    <div class="flex-grow-1 mt-1">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ rating_distribution.5 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="ms-2 text-muted small">{{ rating_distribution.5 }}%</div>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <div>
+                        <span class="d-inline-block me-2">4 <i class="fas fa-star text-warning"></i></span>
+                    </div>
+                    <div class="flex-grow-1 mt-1">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ rating_distribution.4 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="ms-2 text-muted small">{{ rating_distribution.4 }}%</div>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <div>
+                        <span class="d-inline-block me-2">3 <i class="fas fa-star text-warning"></i></span>
+                    </div>
+                    <div class="flex-grow-1 mt-1">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: {{ rating_distribution.3 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="ms-2 text-muted small">{{ rating_distribution.3 }}%</div>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <div>
+                        <span class="d-inline-block me-2">2 <i class="fas fa-star text-warning"></i></span>
+                    </div>
+                    <div class="flex-grow-1 mt-1">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: {{ rating_distribution.2 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="ms-2 text-muted small">{{ rating_distribution.2 }}%</div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <span class="d-inline-block me-2">1 <i class="fas fa-star text-warning"></i></span>
+                    </div>
+                    <div class="flex-grow-1 mt-1">
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger" role="progressbar" style="width: {{ rating_distribution.1 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="ms-2 text-muted small">{{ rating_distribution.1 }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feedback List -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.3s">
+    <div class="col-md-12">
+        <div class="card shadow border-0 overflow-hidden">
+            <div class="card-header bg-gradient-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-comment-alt me-2"></i>Feedback List</h5>
+                <div>
+                    <button type="button" class="btn btn-sm btn-light" id="refreshFeedback">
+                        <i class="fas fa-sync-alt me-1"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if feedback_list %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="feedbackTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Event</th>
+                                <th>User</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feedback in feedback_list %}
+                            <tr class="feedback-row animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter|add:"1" }}0ms">
+                                <td class="ps-4">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ feedback.event.title }}</h6>
+                                        <small class="text-muted">{{ feedback.event.start_date|date:"M d, Y" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar me-3 bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-user text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ feedback.user.get_full_name }}</h6>
+                                            <small class="text-muted">{{ feedback.user.email }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="rating">
+                                        {% for i in "12345"|make_list %}
+                                            {% if forloop.counter <= feedback.rating %}
+                                                <i class="fas fa-star text-warning"></i>
+                                            {% else %}
+                                                <i class="far fa-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="comment-text">
+                                        {{ feedback.comments|truncatechars:100 }}
+                                    </div>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-sm btn-outline-primary view-feedback-btn"
+                                            data-bs-toggle="modal" data-bs-target="#viewFeedbackModal"
+                                            data-feedback-id="{{ feedback.feedback_id }}"
+                                            data-event-title="{{ feedback.event.title }}"
+                                            data-user-name="{{ feedback.user.get_full_name }}"
+                                            data-rating="{{ feedback.rating }}"
+                                            data-comments="{{ feedback.comments }}">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-comment-slash fa-4x text-muted"></i>
+                    </div>
+                    <h4 class="text-muted">No Feedback Found</h4>
+                    <p class="text-muted mb-0">There is no feedback matching your criteria.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Rated Events -->
+<div class="row mb-4 animate__animated animate__fadeIn" style="animation-delay: 0.4s">
+    <div class="col-md-12">
+        <div class="card shadow border-0">
+            <div class="card-header bg-gradient-success text-white py-3">
+                <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Top Rated Events</h5>
+            </div>
+            <div class="card-body">
+                {% if top_rated_events %}
+                <div class="row">
+                    {% for event in top_rated_events %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 border-0 shadow-sm hover-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">{{ event.title }}</h5>
+                                    <span class="badge bg-success">{{ event.avg_rating|floatformat:1 }} <i class="fas fa-star"></i></span>
+                                </div>
+                                <p class="card-text text-muted small">{{ event.description|truncatechars:100 }}</p>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <small class="text-muted">{{ event.feedback_count }} reviews</small>
+                                    <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye me-1"></i>View Event
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">No rated events found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Feedback Modal -->
+<div class="modal fade" id="viewFeedbackModal" tabindex="-1" aria-labelledby="viewFeedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewFeedbackModalLabel">
+                    <i class="fas fa-comment-alt me-2"></i>Feedback Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Event</label>
+                    <h5 id="modalEventTitle"></h5>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">From</label>
+                    <h5 id="modalUserName"></h5>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Rating</label>
+                    <div id="modalRating" class="fs-5"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Comments</label>
+                    <div id="modalComments" class="p-3 bg-light rounded"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" aria-labelledby="loadingModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="loadingModalLabel">
+                    <i class="fas fa-spinner fa-spin me-2"></i>Processing
+                </h5>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 id="loadingModalText">Please wait...</h5>
+                <p class="text-muted">This may take a few moments</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Feedback search functionality
+        const searchInput = document.getElementById('feedbackSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#feedbackTable tbody tr');
+
+                rows.forEach(row => {
+                    const event = row.querySelector('h6').textContent.toLowerCase();
+                    const user = row.querySelectorAll('h6')[1].textContent.toLowerCase();
+                    const comment = row.querySelector('.comment-text').textContent.toLowerCase();
+
+                    if (event.includes(searchTerm) || user.includes(searchTerm) || comment.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // View Feedback Modal
+        const viewFeedbackBtns = document.querySelectorAll('.view-feedback-btn');
+        viewFeedbackBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const eventTitle = this.getAttribute('data-event-title');
+                const userName = this.getAttribute('data-user-name');
+                const rating = this.getAttribute('data-rating');
+                const comments = this.getAttribute('data-comments');
+
+                document.getElementById('modalEventTitle').textContent = eventTitle;
+                document.getElementById('modalUserName').textContent = userName;
+
+                // Set rating stars
+                let ratingHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= rating) {
+                        ratingHtml += '<i class="fas fa-star text-warning me-1"></i>';
+                    } else {
+                        ratingHtml += '<i class="far fa-star text-warning me-1"></i>';
+                    }
+                }
+                document.getElementById('modalRating').innerHTML = ratingHtml;
+
+                document.getElementById('modalComments').textContent = comments;
+            });
+        });
+
+        // Export Feedback Button
+        const exportFeedbackBtn = document.getElementById('exportFeedbackBtn');
+        if (exportFeedbackBtn) {
+            exportFeedbackBtn.addEventListener('click', function() {
+                // Show loading modal if it exists
+                const loadingModal = document.getElementById('loadingModal');
+                if (loadingModal) {
+                    const bsModal = new bootstrap.Modal(loadingModal);
+                    document.getElementById('loadingModalText').textContent = 'Generating PDF report...';
+                    bsModal.show();
+
+                    // Hide modal after PDF is generated
+                    setTimeout(() => {
+                        bsModal.hide();
+                    }, 2000);
+                }
+
+                // Get current filters
+                const eventFilter = document.getElementById('eventFilter').value;
+                const ratingFilter = document.getElementById('ratingFilter').value;
+
+                // Build URL with filters
+                let pdfUrl = '{% url "feedback_pdf" %}';
+                const params = [];
+                if (eventFilter) {
+                    params.push(`event=${eventFilter}`);
+                }
+                if (ratingFilter) {
+                    params.push(`rating=${ratingFilter}`);
+                }
+                if (params.length > 0) {
+                    pdfUrl += '?' + params.join('&');
+                }
+
+                // Open PDF in new tab
+                window.open(pdfUrl, '_blank');
+            });
+        }
+
+        // Refresh Data Button
+        const refreshDataBtn = document.getElementById('refreshDataBtn');
+        if (refreshDataBtn) {
+            refreshDataBtn.addEventListener('click', function() {
+                window.location.reload();
+            });
+        }
+
+        // Refresh Feedback Button
+        const refreshFeedback = document.getElementById('refreshFeedback');
+        if (refreshFeedback) {
+            refreshFeedback.addEventListener('click', function() {
+                window.location.reload();
+            });
+        }
+    });
+</script>
+{% endblock %}

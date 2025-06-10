@@ -1,0 +1,518 @@
+{% extends "attendee/base.html" %}
+
+{% block title %}My Reviews{% endblock %}
+
+{% block page_title %}My Reviews{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="card border-0 shadow mb-4 animate__animated animate__fadeInDown">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="animate__animated animate__fadeInLeft" style="animation-delay: 0.2s">
+                    <h2 class="mb-1">My Reviews</h2>
+                    <p class="text-muted mb-0">View and manage your event feedback and ratings.</p>
+                </div>
+                <div class="d-flex align-items-center animate__animated animate__fadeInRight" style="animation-delay: 0.3s">
+                    <a href="{% url 'attendee_dashboard' %}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                    </a>
+                    <a href="{% url 'recent_events' %}" class="btn btn-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>My Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.1s">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-3 d-flex align-items-center justify-content-center animate__animated animate__bounceIn" style="width: 60px; height: 60px; animation-delay: 0.5s">
+                                <i class="fas fa-star fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="h2 mb-0 fw-bold animate__animated animate__fadeIn" style="animation-delay: 0.7s">{{ total_reviews }}</h3>
+                            <p class="text-muted mb-0 animate__animated animate__fadeIn" style="animation-delay: 0.8s">Total Reviews</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.2s">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-3 d-flex align-items-center justify-content-center animate__animated animate__bounceIn" style="width: 60px; height: 60px; animation-delay: 0.6s">
+                                <i class="fas fa-chart-line fa-2x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="h2 mb-0 fw-bold animate__animated animate__fadeIn" style="animation-delay: 0.8s">{{ avg_rating|floatformat:1 }}</h3>
+                            <p class="text-muted mb-0 animate__animated animate__fadeIn" style="animation-delay: 0.9s">Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.3s">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="rounded-circle bg-info bg-opacity-10 p-3 d-flex align-items-center justify-content-center animate__animated animate__bounceIn" style="width: 60px; height: 60px; animation-delay: 0.7s">
+                                <i class="fas fa-calendar-check fa-2x text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="h2 mb-0 fw-bold animate__animated animate__fadeIn" style="animation-delay: 0.9s">{{ reviewed_events_count }}</h3>
+                            <p class="text-muted mb-0 animate__animated animate__fadeIn" style="animation-delay: 1s">Events Reviewed</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-0 shadow h-100 animate__animated animate__fadeInUp" style="animation-delay: 0.4s">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 me-3">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-3 d-flex align-items-center justify-content-center animate__animated animate__bounceIn" style="width: 60px; height: 60px; animation-delay: 0.8s">
+                                <i class="fas fa-calendar-alt fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="h2 mb-0 fw-bold animate__animated animate__fadeIn" style="animation-delay: 1s">{{ pending_reviews_count }}</h3>
+                            <p class="text-muted mb-0 animate__animated animate__fadeIn" style="animation-delay: 1.1s">Pending Reviews</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Distribution -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow animate__animated animate__fadeInUp" style="animation-delay: 0.5s">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0 fw-bold animate__animated animate__fadeInLeft" style="animation-delay: 0.7s">
+                        <i class="fas fa-chart-pie me-2 text-primary"></i>Your Rating Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="chart-container" style="height: 250px;">
+                                <canvas id="ratingDistributionChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="rating-breakdown mt-3">
+                                <h6 class="text-muted mb-3">Rating Breakdown</h6>
+                                
+                                {% for i in "54321"|make_list %}
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-2">{{ i }} <i class="fas fa-star text-warning"></i></div>
+                                    </div>
+                                    <div class="flex-grow-1 mx-3">
+                                        <div class="progress" style="height: 8px;">
+                                            <div class="progress-bar bg-{{ i|add:"0" }}star" role="progressbar" style="width: {{ rating_distribution|get_item:i }}%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="text-muted small">{{ rating_distribution|get_item:i }}%</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow animate__animated animate__fadeInUp" style="animation-delay: 0.6s">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0 fw-bold animate__animated animate__fadeInLeft" style="animation-delay: 1.2s">
+                        <i class="fas fa-list me-2 text-primary"></i>Your Reviews
+                    </h5>
+                    <div class="d-flex">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Search reviews..." id="reviewSearch">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if reviews %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="reviewsTable">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Rating</th>
+                                        <th>Comments</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for review in reviews %}
+                                    <tr class="animate__animated animate__fadeIn" style="animation-delay: {{ forloop.counter|add:"12" }}00ms">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if review.event.banner %}
+                                                    <img src="{{ review.event.banner.url }}" alt="{{ review.event.title }}" class="me-2 rounded" style="width: 40px; height: 40px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light me-2 rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-calendar-alt text-primary"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <h6 class="mb-0">{{ review.event.title }}</h6>
+                                                    <small class="text-muted">{{ review.event.start_date|date:"M d, Y" }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ review.feedback_id|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="rating">
+                                                {% for i in "12345"|make_list %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star text-warning"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star text-muted"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="comment-text">{{ review.comments|truncatechars:50 }}</div>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-primary view-review-btn" 
+                                                    data-bs-toggle="modal" data-bs-target="#viewReviewModal"
+                                                    data-event-title="{{ review.event.title }}"
+                                                    data-event-date="{{ review.event.start_date|date:"M d, Y" }}"
+                                                    data-rating="{{ review.rating }}"
+                                                    data-comments="{{ review.comments }}"
+                                                    data-review-date="{{ review.feedback_id|date:"M d, Y" }}">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <a href="{% url 'event_detail' review.event.event_id %}" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-star-3661048-3095067.png" alt="No Reviews" width="80" class="mb-3 animate__animated animate__pulse animate__infinite animate__slower">
+                            <h4 class="text-muted">No Reviews Found</h4>
+                            <p class="text-muted mb-3">You haven't submitted any reviews yet.</p>
+                            <a href="{% url 'recent_events' %}" class="btn btn-primary">
+                                <i class="fas fa-calendar-alt me-2"></i>View My Events
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if reviews %}
+                <div class="card-footer bg-white border-0 py-3">
+                    <nav aria-label="Review pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if reviews.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1" aria-label="First">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ reviews.previous_page_number }}" aria-label="Previous">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="First">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in reviews.paginator.page_range %}
+                                {% if reviews.number == num %}
+                                    <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                {% elif num > reviews.number|add:'-3' and num < reviews.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if reviews.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ reviews.next_page_number }}" aria-label="Next">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ reviews.paginator.num_pages }}" aria-label="Last">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Last">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Reviews -->
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow animate__animated animate__fadeInUp" style="animation-delay: 0.7s">
+                <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0 fw-bold animate__animated animate__fadeInLeft" style="animation-delay: 1.7s">
+                        <i class="fas fa-clock me-2 text-warning"></i>Pending Reviews
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_reviews %}
+                        <div class="row">
+                            {% for event in pending_reviews %}
+                            <div class="col-md-4 mb-4">
+                                <div class="card h-100 border-0 shadow-sm hover-card animate__animated animate__fadeInUp" style="animation-delay: {{ forloop.counter|add:"17" }}00ms">
+                                    {% if event.banner %}
+                                        <img src="{{ event.banner.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 160px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 160px;">
+                                            <i class="fas fa-calendar-alt fa-3x text-primary opacity-50"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-primary">{{ event.category.name }}</span>
+                                            <small class="text-muted">{{ event.start_date|date:"M d, Y" }}</small>
+                                        </div>
+                                        <h5 class="card-title">{{ event.title }}</h5>
+                                        <p class="card-text text-muted small">{{ event.description|truncatechars:100 }}</p>
+                                    </div>
+                                    <div class="card-footer bg-white border-0 pt-0">
+                                        <a href="{% url 'event_detail' event.event_id %}" class="btn btn-sm btn-primary w-100">
+                                            <i class="fas fa-star me-2"></i>Leave Review
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <img src="https://cdn.iconscout.com/icon/free/png-256/free-check-verified-successful-accept-tick-yes-success-2516.png" alt="All Caught Up" width="80" class="mb-3 animate__animated animate__pulse animate__infinite animate__slower">
+                            <h4 class="text-muted">All Caught Up!</h4>
+                            <p class="text-muted mb-0">You've reviewed all your past events. Great job!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Review Modal -->
+<div class="modal fade" id="viewReviewModal" tabindex="-1" aria-labelledby="viewReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewReviewModalLabel">
+                    <i class="fas fa-star me-2"></i>Review Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Event</label>
+                    <h5 id="modalEventTitle"></h5>
+                    <small class="text-muted" id="modalEventDate"></small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Review Date</label>
+                    <h6 id="modalReviewDate"></h6>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Rating</label>
+                    <div id="modalRating" class="fs-5"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Comments</label>
+                    <div id="modalComments" class="p-3 bg-light rounded"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom CSS for Rating Distribution -->
+<style>
+    .bg-5star {
+        background-color: #4e73df;
+    }
+    .bg-4star {
+        background-color: #1cc88a;
+    }
+    .bg-3star {
+        background-color: #36b9cc;
+    }
+    .bg-2star {
+        background-color: #f6c23e;
+    }
+    .bg-1star {
+        background-color: #e74a3b;
+    }
+    
+    .hover-card {
+        transition: all 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Review search functionality
+        const searchInput = document.getElementById('reviewSearch');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('#reviewsTable tbody tr');
+                
+                rows.forEach(row => {
+                    const eventTitle = row.querySelector('h6').textContent.toLowerCase();
+                    const comment = row.querySelector('.comment-text').textContent.toLowerCase();
+                    
+                    if (eventTitle.includes(searchTerm) || comment.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // View Review Modal
+        const viewReviewBtns = document.querySelectorAll('.view-review-btn');
+        viewReviewBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const eventTitle = this.getAttribute('data-event-title');
+                const eventDate = this.getAttribute('data-event-date');
+                const rating = this.getAttribute('data-rating');
+                const comments = this.getAttribute('data-comments');
+                const reviewDate = this.getAttribute('data-review-date');
+                
+                document.getElementById('modalEventTitle').textContent = eventTitle;
+                document.getElementById('modalEventDate').textContent = eventDate;
+                document.getElementById('modalReviewDate').textContent = reviewDate;
+                
+                // Set rating stars
+                let ratingHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= rating) {
+                        ratingHtml += '<i class="fas fa-star text-warning me-1"></i>';
+                    } else {
+                        ratingHtml += '<i class="far fa-star text-warning me-1"></i>';
+                    }
+                }
+                document.getElementById('modalRating').innerHTML = ratingHtml;
+                
+                document.getElementById('modalComments').textContent = comments;
+            });
+        });
+        
+        // Rating Distribution Chart
+        const ratingDistributionCtx = document.getElementById('ratingDistributionChart');
+        if (ratingDistributionCtx) {
+            const ratingDistributionChart = new Chart(ratingDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                    datasets: [{
+                        data: [
+                            {{ rating_distribution.5|default:"0" }}, 
+                            {{ rating_distribution.4|default:"0" }}, 
+                            {{ rating_distribution.3|default:"0" }}, 
+                            {{ rating_distribution.2|default:"0" }}, 
+                            {{ rating_distribution.1|default:"0" }}
+                        ],
+                        backgroundColor: [
+                            '#4e73df',
+                            '#1cc88a',
+                            '#36b9cc',
+                            '#f6c23e',
+                            '#e74a3b'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

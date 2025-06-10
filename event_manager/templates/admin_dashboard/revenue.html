@@ -1,0 +1,687 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Revenue Management - CorpEventX Admin{% endblock %}
+{% block page_title %}Revenue Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Revenue Stats Cards */
+    .stats-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .revenue-card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .revenue-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    .revenue-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+        z-index: -1;
+    }
+
+    .revenue-card-primary {
+        background: linear-gradient(135deg, var(--primary-color), #7597ec);
+        color: white;
+    }
+
+    .revenue-card-danger {
+        background: linear-gradient(135deg, var(--danger-color), #ff7875);
+        color: white;
+    }
+
+    .revenue-card-success {
+        background: linear-gradient(135deg, var(--success-color), #3ddaab);
+        color: white;
+    }
+
+    .revenue-card-body {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .revenue-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .revenue-icon {
+        font-size: 1.75rem;
+        color: white;
+    }
+
+    .revenue-details {
+        flex: 1;
+    }
+
+    .revenue-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .revenue-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    /* Revenue Chart Card */
+    .chart-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .chart-card:hover {
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    .chart-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+    }
+
+    .chart-card .card-body {
+        padding: 1.5rem;
+    }
+
+    /* Revenue Tables */
+    .revenue-table-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .revenue-table-card:hover {
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    .revenue-table-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+    }
+
+    .revenue-table-card .card-body {
+        padding: 0;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--text-color);
+        padding: 1rem 1.25rem;
+        white-space: nowrap;
+        background-color: rgba(var(--primary-color-rgb), 0.02);
+    }
+
+    .table td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+
+    .event-revenue-row {
+        transition: all 0.2s ease;
+    }
+
+    .event-revenue-row:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    /* Event Title */
+    .event-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .event-revenue-row:hover .event-title {
+        color: var(--primary-color);
+    }
+
+    .event-date {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    /* Revenue Values */
+    .revenue-amount {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    .expense-amount {
+        font-weight: 600;
+        color: var(--danger-color);
+    }
+
+    .profit-amount {
+        font-weight: 600;
+    }
+
+    .profit-positive {
+        color: var(--success-color);
+    }
+
+    .profit-negative {
+        color: var(--danger-color);
+    }
+
+    .profit-neutral {
+        color: var(--text-muted);
+    }
+
+    /* Action Buttons */
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Modal Styles */
+    .revenue-modal .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .revenue-modal .modal-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .revenue-modal .modal-title {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .revenue-modal .modal-body {
+        padding: 1.5rem;
+    }
+
+    .revenue-modal .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-event-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--text-color);
+    }
+
+    .modal-event-date {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    .modal-detail-label {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-detail-value {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+
+    .modal-stat-card {
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        height: 100%;
+    }
+
+    .modal-stat-card h6 {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+    }
+
+    .modal-stat-card h4 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-in-out;
+    }
+
+    .animate-slide-down {
+        animation: slideDown 0.5s ease-in-out;
+    }
+
+    .animate-scale {
+        animation: scale 0.5s ease-in-out;
+    }
+
+    .float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes scale {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes float {
+        0% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .revenue-card-body {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .revenue-icon-wrapper {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .table {
+            min-width: 900px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="page-title">Revenue Management</h1>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Revenue</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Revenue Summary -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card revenue-card bg-primary text-white">
+            <div class="card-body text-center p-4">
+                <div class="revenue-icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+                <div class="revenue-value">₹{{ total_revenue }}</div>
+                <div class="revenue-label">Total Revenue</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card revenue-card bg-danger text-white">
+            <div class="card-body text-center p-4">
+                <div class="revenue-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <div class="revenue-value">₹{{ total_expenses }}</div>
+                <div class="revenue-label">Total Expenses</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card revenue-card bg-success text-white">
+            <div class="card-body text-center p-4">
+                <div class="revenue-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="revenue-value">₹{{ total_profit }}</div>
+                <div class="revenue-label">Net Profit</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue Chart -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-chart-bar me-2"></i> Revenue Overview
+    </div>
+    <div class="card-body">
+        <canvas id="revenueChart" height="300"></canvas>
+    </div>
+</div>
+
+<!-- Events with Revenue -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-money-bill-wave me-2"></i> Events with Revenue</span>
+        <a href="/admin/events/revenue/add/" class="btn btn-sm btn-success">
+            <i class="fas fa-plus me-1"></i> Add Revenue
+        </a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Tickets Sold</th>
+                        <th>Revenue</th>
+                        <th>Expenses</th>
+                        <th>Net Profit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events_with_revenue %}
+                    {% with revenue=event.revenues.first %}
+                    <tr class="event-revenue-row">
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.start_date|date:"M d, Y" }}</td>
+                        <td>{{ revenue.total_tickets_sold }}</td>
+                        <td>₹{{ revenue.total_revenue }}</td>
+                        <td>₹{{ revenue.expenses }}</td>
+                        <td>
+                            {% if revenue.net_profit > 0 %}
+                                <span class="text-success">₹{{ revenue.net_profit }}</span>
+                            {% elif revenue.net_profit < 0 %}
+                                <span class="text-danger">₹{{ revenue.net_profit }}</span>
+                            {% else %}
+                                <span class="text-muted">₹{{ revenue.net_profit }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="/admin/events/revenue/{{ revenue.revenue_id }}/change/" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-info view-revenue-btn" data-bs-toggle="modal" data-bs-target="#viewRevenueModal"
+                                    data-event-title="{{ event.title }}"
+                                    data-event-date="{{ event.start_date|date:'M d, Y' }}"
+                                    data-tickets-sold="{{ revenue.total_tickets_sold }}"
+                                    data-revenue="{{ revenue.total_revenue }}"
+                                    data-expenses="{{ revenue.expenses }}"
+                                    data-net-profit="{{ revenue.net_profit }}"
+                                    data-last-updated="{{ revenue.last_updated|date:'M d, Y H:i' }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endwith %}
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">No events with revenue data</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Events without Revenue -->
+<div class="card">
+    <div class="card-header">
+        <i class="fas fa-exclamation-circle me-2"></i> Events without Revenue Data
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date</th>
+                        <th>Organizer</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events_without_revenue %}
+                    <tr>
+                        <td>{{ event.title }}</td>
+                        <td>{{ event.start_date|date:"M d, Y" }}</td>
+                        <td>{{ event.organizer.get_full_name|default:event.organizer.email }}</td>
+                        <td>
+                            {% if event.get_status == 'Upcoming' %}
+                                <span class="badge bg-primary">{{ event.get_status }}</span>
+                            {% elif event.get_status == 'Ongoing' %}
+                                <span class="badge bg-success">{{ event.get_status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ event.get_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/admin/events/revenue/add/?event={{ event.event_id }}" class="btn btn-sm btn-success">
+                                <i class="fas fa-plus me-1"></i> Add Revenue
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center">All events have revenue data</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- View Revenue Modal -->
+<div class="modal fade" id="viewRevenueModal" tabindex="-1" aria-labelledby="viewRevenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewRevenueModalLabel">Revenue Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <h4 id="modalEventTitle"></h4>
+                    <p id="modalEventDate" class="text-muted"></p>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tickets Sold</label>
+                        <p id="modalTicketsSold"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Last Updated</label>
+                        <p id="modalLastUpdated"></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white p-3 text-center">
+                            <h6>Revenue</h6>
+                            <h4 id="modalRevenue"></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-danger text-white p-3 text-center">
+                            <h6>Expenses</h6>
+                            <h4 id="modalExpenses"></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white p-3 text-center">
+                            <h6>Net Profit</h6>
+                            <h4 id="modalNetProfit"></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Revenue Chart
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [{% for event in events_with_revenue %}'{{ event.title|truncatechars:20 }}',{% endfor %}],
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: [{% for event in events_with_revenue %}{% with revenue=event.revenues.first %}{{ revenue.total_revenue }},{% endwith %}{% endfor %}],
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Expenses',
+                        data: [{% for event in events_with_revenue %}{% with revenue=event.revenues.first %}{{ revenue.expenses }},{% endwith %}{% endfor %}],
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Net Profit',
+                        data: [{% for event in events_with_revenue %}{% with revenue=event.revenues.first %}{{ revenue.net_profit }},{% endwith %}{% endfor %}],
+                        backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                        borderColor: 'rgba(46, 204, 113, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return '₹' + value;
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ₹' + context.raw;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // View Revenue Modal
+        const viewRevenueBtns = document.querySelectorAll('.view-revenue-btn');
+        viewRevenueBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const eventTitle = this.getAttribute('data-event-title');
+                const eventDate = this.getAttribute('data-event-date');
+                const ticketsSold = this.getAttribute('data-tickets-sold');
+                const revenue = this.getAttribute('data-revenue');
+                const expenses = this.getAttribute('data-expenses');
+                const netProfit = this.getAttribute('data-net-profit');
+                const lastUpdated = this.getAttribute('data-last-updated');
+
+                document.getElementById('modalEventTitle').textContent = eventTitle;
+                document.getElementById('modalEventDate').textContent = eventDate;
+                document.getElementById('modalTicketsSold').textContent = ticketsSold;
+                document.getElementById('modalRevenue').textContent = '₹' + revenue;
+                document.getElementById('modalExpenses').textContent = '₹' + expenses;
+                document.getElementById('modalNetProfit').textContent = '₹' + netProfit;
+                document.getElementById('modalLastUpdated').textContent = lastUpdated;
+            });
+        });
+    });
+</script>
+{% endblock %}

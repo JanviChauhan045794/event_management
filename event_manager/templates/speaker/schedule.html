@@ -1,0 +1,140 @@
+{% extends "speaker/base.html" %}
+
+{% block title %}Schedule{% endblock %}
+
+{% block page_title %}Speaking Schedule{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Your Schedule</h4>
+            <span class="text-muted">{{ today_date }}</span>
+        </div>
+        <div class="calendar-export-dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="calendarExportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-calendar-alt me-2"></i> Export Calendar
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="calendarExportDropdown">
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="?export=ical">
+                        <i class="far fa-calendar-alt me-2 text-primary"></i>
+                        <div>
+                            <div class="fw-medium">iCal (.ics)</div>
+                            <small class="text-muted">Export to Apple Calendar</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="exportToGoogleCalendar(event)">
+                        <i class="fab fa-google me-2 text-danger"></i>
+                        <div>
+                            <div class="fw-medium">Google Calendar</div>
+                            <small class="text-muted">Sync with Google Calendar</small>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item d-flex align-items-center" href="#" onclick="exportToOutlook(event)">
+                        <i class="fab fa-microsoft me-2 text-info"></i>
+                        <div>
+                            <div class="fw-medium">Outlook</div>
+                            <small class="text-muted">Export to Outlook Calendar</small>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Schedule Content -->
+    <div class="card border-0 shadow mb-4">
+        <div class="card-body">
+            {% include "speaker/components/schedule_content.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    'use strict';
+
+    // Initialize calendar export functionality
+    var allEvents = {{ all_events|safe }};
+
+    // Export to Google Calendar
+    window.exportToGoogleCalendar = function(e) {
+        e.preventDefault();
+        
+        var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+        
+        if (allEvents && allEvents.length > 0) {
+            var event = allEvents[0];
+            url += '&text=' + encodeURIComponent(event.title || '');
+            url += '&details=' + encodeURIComponent(event.description || '');
+            url += '&location=' + encodeURIComponent(event.location || '');
+            url += '&dates=' + (event.start_date || '').replace(/[-:]/g, '') + '/' + (event.end_date || '').replace(/[-:]/g, '');
+        }
+        
+        window.open(url, '_blank');
+    };
+
+    // Export to Outlook Calendar
+    window.exportToOutlook = function(e) {
+        e.preventDefault();
+        
+        var url = 'https://outlook.office.com/calendar/0/deeplink/compose?path=/calendar/action/compose';
+        
+        if (allEvents && allEvents.length > 0) {
+            var event = allEvents[0];
+            url += '&subject=' + encodeURIComponent(event.title || '');
+            url += '&body=' + encodeURIComponent(event.description || '');
+            url += '&location=' + encodeURIComponent(event.location || '');
+            url += '&startdt=' + (event.start_date || '');
+            url += '&enddt=' + (event.end_date || '');
+        }
+        
+        window.open(url, '_blank');
+    };
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize auto-submit for filters
+        var viewTypeSelect = document.getElementById('viewType');
+        var timeFilterSelect = document.getElementById('timeFilter');
+
+        if (viewTypeSelect) {
+            viewTypeSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+
+        if (timeFilterSelect) {
+            timeFilterSelect.addEventListener('change', function() {
+                this.form.submit();
+            });
+        }
+
+        // Add hover effect to event cards
+        var cards = document.querySelectorAll('.hover-shadow');
+        if (cards) {
+            cards.forEach(function(card) {
+                card.addEventListener('mouseenter', function() {
+                    this.classList.add('shadow');
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.classList.remove('shadow');
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        }
+    });
+})();
+</script>
+{% endblock %}

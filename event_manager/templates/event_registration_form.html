@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Register for {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Event Summary Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            {% if event.banner %}
+                            <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="me-3" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px;">
+                            {% else %}
+                            <div class="me-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-3" style="width: 80px; height: 80px;">
+                                <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                            <h4 class="mb-1">{{ event.title }}</h4>
+                            <div class="text-muted">
+                                <div><i class="fas fa-calendar-day me-2"></i>{{ event.start_date|date:"F d, Y" }}</div>
+                                <div><i class="fas fa-clock me-2"></i>{{ event.start_date|date:"g:i A" }}</div>
+                                <div><i class="fas fa-map-marker-alt me-2"></i>{{ event.location }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Registration Progress -->
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ event.get_capacity_percentage }}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">{{ event.get_registered_count }} registered</small>
+                        <small class="text-muted">{{ event.capacity }} total capacity</small>
+                    </div>
+                        </div>
+                    </div>
+
+                    <!-- Registration Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white p-4 border-bottom">
+                    <h5 class="mb-0">Registration Details</h5>
+                    <p class="text-muted mb-0">Please fill in your information to register for this event</p>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Personal Information -->
+                        <div class="mb-4">
+                            <h6 class="mb-3 text-primary"><i class="fas fa-user me-2"></i>Personal Information</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" value="{{ user.first_name }}" required>
+                                        <label for="first_name">First Name</label>
+                                        <div class="invalid-feedback">Please enter your first name</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" value="{{ user.last_name }}" required>
+                                        <label for="last_name">Last Name</label>
+                                        <div class="invalid-feedback">Please enter your last name</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" value="{{ user.email }}" required>
+                                        <label for="email">Email Address</label>
+                                        <div class="invalid-feedback">Please enter a valid email address</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="tel" class="form-control" id="phone" name="phone" placeholder="Phone" value="{{ user.phone }}" required>
+                                        <label for="phone">Phone Number</label>
+                                        <div class="invalid-feedback">Please enter your phone number</div>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Professional Information -->
+                        <div class="mb-4">
+                            <h6 class="mb-3 text-primary"><i class="fas fa-briefcase me-2"></i>Professional Information</h6>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-floating">
+                                        <select class="form-select" id="attendee_type" name="attendee_type" required>
+                                            <option value="">Select your category</option>
+                                            {% for type in attendee_types %}
+                                                <option value="{{ type.type_id }}">{{ type.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <label for="attendee_type">Attendee Category</label>
+                                        <div class="invalid-feedback">Please select your attendee category</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="organization" name="organization" placeholder="Organization/Institution" value="{{ user.organization }}">
+                                        <label for="organization">Organization/Institution</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="designation" name="designation" placeholder="Designation/Course" value="{{ user.designation }}">
+                                        <label for="designation">Designation/Course</label>
+                            </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Requirements -->
+                        <div class="mb-4">
+                            <h6 class="mb-3 text-primary"><i class="fas fa-clipboard-list me-2"></i>Additional Requirements</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="dietary_requirements" name="dietary_requirements" style="height: 100px" placeholder="Dietary Requirements"></textarea>
+                                        <label for="dietary_requirements">Dietary Requirements (if any)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <textarea class="form-control" id="special_assistance" name="special_assistance" style="height: 100px" placeholder="Special Assistance"></textarea>
+                                        <label for="special_assistance">Special Assistance (if any)</label>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        
+                        <!-- Communication Preferences -->
+                        <div class="mb-4">
+                            <h6 class="mb-3 text-primary"><i class="fas fa-bell me-2"></i>Communication Preferences</h6>
+                            <div class="d-flex gap-4">
+                            <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="reminders_enabled" id="reminders_enabled" checked>
+                                    <label class="form-check-label" for="reminders_enabled">
+                                    Send me event reminders
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="updates_enabled" id="updates_enabled" checked>
+                                    <label class="form-check-label" for="updates_enabled">
+                                    Send me event updates
+                                </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" name="agree_terms" id="agree_terms" required>
+                                <label class="form-check-label" for="agree_terms">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">terms and conditions</a>
+                                </label>
+                                <div class="invalid-feedback">
+                                    You must agree to the terms and conditions to register.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-ticket-alt me-2"></i>Complete Registration
+                            </button>
+                            <a href="{% url 'event_detail' event.event_id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Event
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="mb-3">Event Registration Terms</h6>
+                <p>By registering for this event, you agree to the following terms:</p>
+                <ul class="mb-4">
+                    <li>Your registration is for {{ event.title }} only</li>
+                    <li>The event will take place on {{ event.start_date|date:"F d, Y" }} at {{ event.location }}</li>
+                    <li>Your registration information will be used to process your attendance</li>
+                    <li>The event organizer may contact you with event-related information</li>
+                    <li>Photos and videos taken during the event may be used for promotional purposes</li>
+                    <li>Cancellations must be made at least 48 hours before the event</li>
+                </ul>
+                
+                <h6 class="mb-3">Privacy Policy</h6>
+                <p>We respect your privacy and will protect your personal information:</p>
+                <ul>
+                    <li>Your information will only be used for event-related purposes</li>
+                    <li>We will not share your data with third parties without your consent</li>
+                    <li>You can opt-out of communications at any time</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+        const form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+
+        // Terms modal handling
+        const termsCheckbox = document.getElementById('agree_terms');
+        const termsModal = document.getElementById('termsModal');
+        termsModal.addEventListener('hidden.bs.modal', function() {
+            if (termsCheckbox.checked) {
+                termsCheckbox.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-floating > .form-control:focus,
+    .form-floating > .form-control:not(:placeholder-shown) {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+    }
+    
+    .form-floating > .form-control:focus ~ label,
+    .form-floating > .form-control:not(:placeholder-shown) ~ label {
+        opacity: .65;
+        transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+    }
+    
+    .progress {
+        border-radius: 10px;
+        background-color: #e9ecef;
+    }
+    
+    .progress-bar {
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
+</style>
+{% endblock %}

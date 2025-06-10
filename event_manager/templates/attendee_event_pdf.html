@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ event.title }} - Event Details</title>
+    <style>
+        @page {
+            size: a4 portrait;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4e73df;
+            padding-bottom: 10px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4e73df;
+        }
+        h2 {
+            font-size: 20px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            color: #4e73df;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .event-meta {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+        }
+        .meta-item {
+            margin-bottom: 10px;
+        }
+        .meta-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        .description {
+            margin-bottom: 30px;
+            text-align: justify;
+        }
+        .banner {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            font-size: 12px;
+            color: #777;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #4e73df;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .price-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #1cc88a;
+            color: white;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .ticket-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+            border: 1px dashed #4e73df;
+        }
+        .ticket-header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .ticket-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .ticket-label {
+            font-weight: bold;
+        }
+        .qr-code {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+        }
+        .rules-section {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fc;
+            border-radius: 5px;
+        }
+        .rules-list {
+            padding-left: 20px;
+        }
+        .rules-list li {
+            margin-bottom: 10px;
+        }
+        .schedule-section {
+            margin-top: 30px;
+        }
+        .schedule-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .schedule-time {
+            font-weight: bold;
+            color: #4e73df;
+        }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 100px;
+            color: rgba(78, 115, 223, 0.05);
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="watermark">ATTENDEE COPY</div>
+
+    <div class="header">
+        <div class="logo">CorpEventX</div>
+        <p>Event Details & Ticket</p>
+    </div>
+
+    {% if event.banner %}
+    <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="banner">
+    {% endif %}
+
+    <h1>{{ event.title }}</h1>
+
+    <div class="badges">
+        <span class="category-badge">{{ event.category.name }}</span>
+        {% if event.ticket_price > 0 %}
+            <span class="price-badge">₹{{ event.ticket_price }}</span>
+        {% else %}
+            <span class="price-badge">Free</span>
+        {% endif %}
+    </div>
+
+    <div class="event-meta">
+        <div class="meta-item">
+            <span class="meta-label">Organizer:</span>
+            <span>{{ event.organizer.first_name }} {{ event.organizer.last_name }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Start Date:</span>
+            <span>{{ event.start_date|date:"F d, Y" }} at {{ event.start_date|date:"g:i A" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">End Date:</span>
+            <span>{{ event.end_date|date:"F d, Y" }} at {{ event.end_date|date:"g:i A" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Location:</span>
+            <span>{{ event.location }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Category:</span>
+            <span>{{ event.category.name }}</span>
+        </div>
+    </div>
+
+    <h2>Event Description</h2>
+    <div class="description">
+        {{ event.description|linebreaks }}
+    </div>
+
+    {% if rulebook %}
+    <h2>Event Rules & Guidelines</h2>
+    <div class="rules-section">
+        <div class="rules-list">
+            {{ rulebook|linebreaks }}
+        </div>
+    </div>
+    {% endif %}
+
+    <h2>Your Ticket</h2>
+    <div class="ticket-section">
+        <div class="ticket-header">
+            <h3>{{ event.title }} - Attendee Ticket</h3>
+        </div>
+
+        <div class="ticket-info">
+            <span class="ticket-label">Attendee:</span>
+            <span>{{ user.first_name }} {{ user.last_name }}</span>
+        </div>
+
+        <div class="ticket-info">
+            <span class="ticket-label">Email:</span>
+            <span>{{ user.email }}</span>
+        </div>
+
+        <div class="ticket-info">
+            <span class="ticket-label">Ticket Type:</span>
+            <span>{{ registration.attendee_type.name|default:"Standard" }}</span>
+        </div>
+
+        <div class="ticket-info">
+            <span class="ticket-label">Registration Date:</span>
+            <span>{{ registration.registered_at|date:"F d, Y" }}</span>
+        </div>
+
+        <div class="ticket-info">
+            <span class="ticket-label">Ticket ID:</span>
+            <span>{{ registration.registration_id }}</span>
+        </div>
+
+        <div class="qr-code">
+            <img src="{{ qr_code }}" alt="QR Code for Ticket" style="width: 150px; height: 150px;">
+            <p>Ticket ID: {{ registration.registration_id }}</p>
+            <p>Scan this code at the event entrance</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Generated on {{ now|date:"F d, Y" }} at {{ now|date:"g:i A" }}</p>
+        <p>This ticket is valid for one person only. Please bring a photo ID for verification.</p>
+        <p>CorpEventX - Your Complete Event Management Solution</p>
+    </div>
+</body>
+</html>

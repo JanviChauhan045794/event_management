@@ -1,0 +1,561 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Users Management - CorpEventX Admin{% endblock %}
+{% block page_title %}Users Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* User Stats Cards */
+    .stats-container {
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(var(--primary-color-rgb), 0.15);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .action-buttons .btn {
+        border-radius: 8px;
+        padding: 0.75rem 1.25rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    }
+
+    .action-buttons .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .action-buttons .btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .action-buttons .btn:hover i {
+        transform: scale(1.2);
+    }
+
+    /* Filter Card */
+    .filter-card {
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        border: none;
+    }
+
+    .filter-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+    }
+
+    .filter-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .form-floating > .form-select,
+    .form-floating > .form-control {
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+        height: 58px;
+        box-shadow: none;
+        transition: all 0.3s ease;
+    }
+
+    .form-floating > .form-select:focus,
+    .form-floating > .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-color-rgb), 0.25);
+    }
+
+    .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .input-group .input-group-text {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .input-group .form-control {
+        border-color: var(--border-color);
+    }
+
+    .input-group .btn {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* Users Table */
+    .user-table-card {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .user-table-card .card-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1rem 1.25rem;
+    }
+
+    .user-table {
+        margin-bottom: 0;
+    }
+
+    .user-table th {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        color: var(--text-color);
+        padding: 1rem 1.25rem;
+        white-space: nowrap;
+    }
+
+    .user-table td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+
+    .user-row {
+        transition: all 0.2s ease;
+    }
+
+    .user-row:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.05);
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .user-row:hover .user-avatar {
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .user-row:hover .user-name {
+        color: var(--primary-color);
+    }
+
+    .user-id {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+    }
+
+    /* Badges */
+    .badge {
+        font-weight: 500;
+        padding: 0.5em 0.75em;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .badge-light {
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        color: var(--primary-color);
+    }
+
+    .badge-primary {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .badge-success {
+        background-color: var(--success-color);
+        color: white;
+    }
+
+    .badge-danger {
+        background-color: var(--danger-color);
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: var(--secondary-color);
+        color: white;
+    }
+
+    .badge-warning {
+        background-color: var(--warning-color);
+        color: white;
+    }
+
+    /* Action Buttons */
+    .btn-group .btn {
+        border-radius: 6px;
+        margin: 0 2px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .btn-group .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Pagination */
+    .pagination-container {
+        background-color: var(--card-bg);
+        border-top: 1px solid var(--border-color);
+        padding: 1rem 1.25rem;
+    }
+
+    .pagination-info {
+        color: var(--text-color);
+        font-size: 0.875rem;
+    }
+
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 0 2px;
+        color: var(--primary-color);
+        border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .pagination .page-link:hover {
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        border-color: rgba(var(--primary-color-rgb), 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+        box-shadow: 0 5px 15px rgba(var(--primary-color-rgb), 0.3);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: var(--text-muted);
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    /* Empty State */
+    .empty-state {
+        padding: 3rem 2rem;
+        text-align: center;
+        color: var(--text-color);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: rgba(var(--primary-color-rgb), 0.3);
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h5 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .empty-state p {
+        color: var(--text-muted);
+        margin-bottom: 1.5rem;
+    }
+
+    /* Modals */
+    .modal-content {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: linear-gradient(45deg, rgba(var(--primary-color-rgb), 0.05), rgba(var(--primary-color-rgb), 0.1));
+        border-bottom: 1px solid rgba(var(--primary-color-rgb), 0.1);
+        padding: 1.25rem 1.5rem;
+    }
+
+    .modal-title {
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 1.25rem 1.5rem;
+    }
+
+    /* Animations */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-up {
+        animation: slideUp 0.5s ease-in-out;
+    }
+
+    .animate-slide-down {
+        animation: slideDown 0.5s ease-in-out;
+    }
+
+    .animate-scale {
+        animation: scale 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes scale {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .user-table th,
+        .user-table td {
+            padding: 0.75rem 1rem;
+        }
+
+        .action-buttons .btn {
+            padding: 0.5rem 1rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .user-table {
+            min-width: 900px;
+        }
+
+        .pagination-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h3 mb-0">User Management</h2>
+        <div class="btn-group">
+            <a href="{% url 'add_user' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Add User
+            </a>
+            <a href="{% url 'add_admin' %}" class="btn btn-warning">
+                <i class="fas fa-user-shield"></i> Add Admin
+            </a>
+            <a href="{% url 'import_users' %}" class="btn btn-success">
+                <i class="fas fa-file-import"></i> Import Users
+            </a>
+            <a href="{% url 'export_users' %}" class="btn btn-info">
+                <i class="fas fa-file-export"></i> Export Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="user_type" class="form-label">User Type</label>
+                    <select class="form-select" id="user_type" name="user_type">
+                        <option value="">All Types</option>
+                        {% for type_value, type_label in user_types %}
+                            <option value="{{ type_value }}" {% if filters.user_type == type_value %}selected{% endif %}>
+                                {{ type_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="is_active" class="form-label">Status</label>
+                    <select class="form-select" id="is_active" name="is_active">
+                        <option value="">All Status</option>
+                        <option value="true" {% if filters.is_active == 'true' %}selected{% endif %}>Active</option>
+                        <option value="false" {% if filters.is_active == 'false' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="q" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="q" name="q" value="{{ filters.q }}" placeholder="Search users...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>User Type</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.get_full_name|default:"-" }}</td>
+                            <td>
+                                <span class="badge {% if user.is_staff %}bg-warning{% else %}bg-info{% endif %}">
+                                    {{ user.get_user_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if user.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ user.is_active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-primary" 
+                                            onclick="location.href='{% url 'admin_users' %}?user_id={{ user.user_id }}'">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% if user.is_active %}
+                                    <button type="button" class="btn btn-outline-danger" 
+                                            onclick="deactivateUser('{{ user.user_id }}')">
+                                        <i class="fas fa-user-slash"></i>
+                                    </button>
+                                    {% else %}
+                                    <button type="button" class="btn btn-outline-success" 
+                                            onclick="activateUser('{{ user.user_id }}')">
+                                        <i class="fas fa-user-check"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <p class="text-muted mb-0">No users found matching your criteria.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if users.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.previous_page_number }}&{{ request.GET.urlencode }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for i in users.paginator.page_range %}
+                    <li class="page-item {% if users.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}&{{ request.GET.urlencode }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if users.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ users.next_page_number }}&{{ request.GET.urlencode }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function deactivateUser(userId) {
+    if (confirm('Are you sure you want to deactivate this user?')) {
+        // Add deactivation logic here
+    }
+};
+
+function activateUser(userId) {
+    if (confirm('Are you sure you want to activate this user?')) {
+        // Add activation logic here
+    }
+};
+</script>
+{% endblock %}
+{% endblock %}
