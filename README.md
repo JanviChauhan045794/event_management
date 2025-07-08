@@ -1,8 +1,8 @@
-# 🎉 Corporate Event Management System
+#  Corporate Event Management System
 
-> 👩‍💻 Developed by **Janvi Chauhan**  
-> 🏫 Semester 8 Project – MSc Computer Science  
-> 🧑‍🏫 Guided by Dr. Maitri Jhaveri, Gujarat University  
+>  Developed by **Janvi Chauhan**  
+>  Semester 8 Project – MSc Computer Science  
+>  Guided by Dr. Maitri Jhaveri, Gujarat University  
 
 A robust, full-stack web application built to manage the complete lifecycle of professional and academic events — from planning and registration to role-based access, QR ticketing, reporting, and feedback collection.
 
@@ -10,16 +10,15 @@ A robust, full-stack web application built to manage the complete lifecycle of p
 
 ## 📚 Table of Contents
 
-- [📝 Overview](#-overview)
-- [🚀 Key Features](#-key-features)
-- [👥 User Roles](#-user-roles)
-- [🛠️ Tech Stack](#-tech-stack)
-- [🧱 Modules & Functionalities](#-modules--functionalities)
-- [🗂️ Data Architecture](#-data-architecture)
-- [📸 Screenshots](#-screenshots)
-- [📈 Future Work](#-future-work)
-- [🙏 Acknowledgements](#-acknowledgements)
-- [👩‍💻 About Me](#-about-me)
+- [ Overview](#-overview)
+- [ Key Features](#-key-features)
+- [ User Roles](#-user-roles)
+- [ Tech Stack](#-tech-stack)
+- [ Modules & Functionalities](#-modules--functionalities)
+- [ Data Architecture](#-data-architecture)
+- [ Future Work](#-future-work)
+- [ Acknowledgements](#-acknowledgements)
+- [ About Me](#-about-me)
 
 ---
 
@@ -110,21 +109,6 @@ This role-based platform offers a seamless experience for Students, Faculty, Ind
 - `blogs`, `notifications`, `feedback` – for engagement and content
 
 > Full data dictionary available in the project documentation.
-
----
-
-## 📸 Screenshots
-
-| Section            | View                      |
-|-------------------|---------------------------|
-| Login/Registration| Role-based onboarding     |
-| Attendee Dashboard| Tickets, notifications    |
-| Organizer Panel   | My Events, Email Attendees|
-| Admin Panel       | Full control & analytics  |
-| Speaker Dashboard | Uploads & session tracking|
-| Sponsor Panel     | Tier benefits & status     |
-
-> 📁 Screenshots available in `/screenshots` or full PDF.
 
 ---
 
